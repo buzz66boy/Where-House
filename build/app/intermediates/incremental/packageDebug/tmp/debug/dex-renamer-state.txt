@@ -1,0 +1,4 @@
+#Tue Oct 31 15:20:24 MDT 2023
+base.0=C\:\\Users\\cakle\\StudioProjects\\Where-House\\build\\app\\intermediates\\dex\\debug\\mergeDexDebug\\classes.dex
+path.0=classes.dex
+renamed.0=classes.dex
