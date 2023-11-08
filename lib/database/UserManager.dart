@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+import 'dart:convert';
 import 'User.dart';
 //import 'pathtoAccountingLog.dart'
 
@@ -109,12 +109,16 @@ class UserManager {
         return User(
           uid: user['uid'],
           name: user['name'],
-          checkedOutItems: Map<int, int>.from(user['checkedOutItems']),
+          checkedOutItems: _decodeCheckedOutItems(user['checkedOutItems']),
         );
       }).toList();
     } catch (e) {
       print(e);
       return [];
     }
+  }
+
+  static Map<int, int> _decodeCheckedOutItems(String json) {
+    return Map<int, int>.from(jsonDecode(json));
   }
 }

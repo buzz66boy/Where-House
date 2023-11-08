@@ -1,6 +1,6 @@
-import 'dart:async';
+import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
-
+import 'dart:async';
 
 class User {
   int uid;
@@ -23,7 +23,7 @@ class User {
       return User(
         uid: results[0]['uid'],
         name: results[0]['name'],
-        checkedOutItems: Map<int, int>.from(results[0]['checkedOutItems']),
+        checkedOutItems: _decodeCheckedOutItems(results[0]['checkedOutItems']),
       );
     } else {
       throw Exception("User not found in the database");
@@ -47,8 +47,16 @@ class User {
     return {
       'uid': uid,
       'name': name,
-      'checkedOutItems': checkedOutItems,
+      'checkedOutItems': _encodeCheckedOutItems(checkedOutItems),
     };
+  }
+
+  static String _encodeCheckedOutItems(Map<int, int> checkedOutItems) {
+    return jsonEncode(checkedOutItems);
+  }
+
+  static Map<int, int> _decodeCheckedOutItems(dynamic json) {
+    return jsonDecode(json);
   }
 
   @override
