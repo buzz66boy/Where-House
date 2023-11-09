@@ -1,45 +1,80 @@
+import Location.dart;
 import 'package:flutter/material.dart';
 
-class LocationView extends StatelessWidget {
-  final Location? location;
+class Location {
+  String name;
+  String description;
+  List<String> barcodes;
+  List<String> locations;
 
-  LocationView({this.location});
+  Location({
+    required this.name,
+    required this.description,
+    required this.barcodes,
+    required this.locations,
+  });
+
+  String getName() => name;
+  String getDescription() => description;
+  List<String> getBarcodes() => barcodes;
+  List<String> getLocations() => locations;
+}
+
+class LocationView extends StatefulWidget {
+  const LocationView({Key? key}) : super(key: key);
+
+  @override
+  _LocationViewState createState() => _LocationViewState();
+}
+
+class _LocationViewState extends State<LocationView> {
+  String name = '';
+  String description = '';
+  List<String> barcodes = [];
+  List<String> locations = [];
+
+  void showLocation(Location location) {
+    assert(location != null, 'The location must not be null.');
+
+    setState(() {
+      name = location.getName();
+      description = location.getDescription();
+      barcodes = location.getBarcodes();
+      locations = location.getLocations();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (location != null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('Location View'),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Name: ${location!.getName()}',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 10),
-              Text('Description: ${location!.getDescription()}'),
-              SizedBox(height: 10),
-              Text('Barcodes: ${location!.getBarcodes().join(', ')}'),
-              SizedBox(height: 10),
-              Text('Locations: ${location!.getLocations().join(', ')}'),
-            ],
+    // Dummy location data, replace with your actual data retrieval logic
+    var dummyLocation = Location(
+      name: 'Central Park',
+      description: 'A large public, urban park in the city center.',
+      barcodes: ['12345', '67890'],
+      locations: ['Playground', 'Pond'],
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Location View'),
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          ElevatedButton(
+            onPressed: () => showLocation(dummyLocation),
+            child: Text('Show Location Info'),
           ),
-        ),
-      );
-    } else {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('Location View'),
-        ),
-        body: Center(
-          child: Text('No location data available.'),
-        ),
-      );
-    }
+          Text('Name: $name'),
+          Text('Description: $description'),
+          Text('Barcodes: ${barcodes.join(', ')}'),
+          Text('Locations: ${locations.join(', ')}'),
+        ],
+      ),
+    );
   }
+}
+
+void main() {
+  runApp(MaterialApp(home: LocationView()));
 }
