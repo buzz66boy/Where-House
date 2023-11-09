@@ -5,12 +5,12 @@ import 'dart:async';
 class User {
   int uid;
   String name;
-  Map<int, int> checkedOutItems;
+  String checkedOutItemsJson;
 
   User({
     required this.uid,
     required this.name,
-    required this.checkedOutItems,
+    required this.checkedOutItemsJson,
   });
 
   static Future<User> getUser(int uid) async {
@@ -23,7 +23,8 @@ class User {
       return User(
         uid: results[0]['uid'],
         name: results[0]['name'],
-        checkedOutItems: _decodeCheckedOutItems(results[0]['checkedOutItems']),
+        checkedOutItemsJson: encodeCheckedOutItems(results[0]['checkedOutItems']),// changed to encode to meet
+        // parameters
       );
     } else {
       throw Exception("User not found in the database");
@@ -47,20 +48,24 @@ class User {
     return {
       'uid': uid,
       'name': name,
-      'checkedOutItems': _encodeCheckedOutItems(checkedOutItems),
+      'checkedOutItems': jsonEncode(checkedOutItemsJson),
     };
   }
 
-  static String _encodeCheckedOutItems(Map<int, int> checkedOutItems) {
-    return jsonEncode(checkedOutItems);
+
+  static String encodeCheckedOutItems(Map<int, int> checkedOutItems) {
+    Map<String, int> stringKeyMap = checkedOutItems.map((key, value) => MapEntry(key.toString(), value));
+    return jsonEncode(stringKeyMap);
   }
 
-  static Map<int, int> _decodeCheckedOutItems(dynamic json) {
-    return jsonDecode(json);
+  static Map<int, int> decodeCheckedOutItems(String json) {
+    Map<String, int> stringKeyMap = Map<String, int>.from(jsonDecode(json));
+    Map<int, int> intKeyMap = stringKeyMap.map((key, value) => MapEntry(int.parse(key), value));
+    return intKeyMap;
   }
 
   @override
   String toString() {
-    return 'User{uid: $uid, name: $name, checkedOutItems: $checkedOutItems}';
+    return 'User{uid: $uid, name: $name, checkedOutItems: $checkedOutItemsJson}';
   }
 }
