@@ -1,74 +1,82 @@
-import Location.dart
+import Location.dart;
+import LocationView.dart;
 import 'package:flutter/material.dart';
 
+// Here's the Location class representing the data for a location.
+class Location {
+  String name;
+  String description;
 
+  Location({required this.name, required this.description});
+
+  // Method to check if the location name matches the one we're looking for.
+  bool isName(String nameToCheck) {
+    return name == nameToCheck;
+  }
+}
+
+// I'm making a LocationListView widget to display a list of Locations.
 class LocationListView extends StatefulWidget {
-  final List<Location> locations;
+  final List<Location> locationList;
 
-  LocationListView({required this.locations});
+  // I require a list of locations to be provided when the widget is created.
+  LocationListView({Key? key, required this.locationList}) : super(key: key);
 
   @override
   _LocationListViewState createState() => _LocationListViewState();
 }
 
 class _LocationListViewState extends State<LocationListView> {
-  String locationNameToFind = "LocationName"; // The name of the location to find
-  Location? foundLocation;
+  // I'll start with an empty list of locations to display.
+  List<Location> displayedLocations = [];
 
-  @override
-  void initState() {
-    super.initState();
-    foundLocation = findLocationByName(widget.locations, locationNameToFind);
+  // When the user presses the button, I'll call this method to update the list.
+  void showLocationList() {
+    // I'm setting the state here to update the displayedLocations with the full list.
+    setState(() {
+      displayedLocations = widget.locationList;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // The UI will have a button to display the location list.
     return Scaffold(
       appBar: AppBar(
-        title: Text('Location List'),
+        title: Text('Location List View'),
       ),
-      body: ListView.builder(
-        itemCount: widget.locations.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(widget.locations[index].getName()),
-            // You can customize the ListTile appearance as needed.
-          );
-        },
+      body: Column(
+        children: [
+          // This button, when pressed, will display the location's information.
+          ElevatedButton(
+            onPressed: showLocationList,
+            child: Text('Show Location List'),
+          ),
+          Expanded(
+            // The ListView.builder will display each location's name in a ListTile.
+            child: ListView.builder(
+              itemCount: displayedLocations.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(displayedLocations[index].name),
+                  subtitle: Text(displayedLocations[index].description),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
-  }
-
-  Location? findLocationByName(List<Location> locations, String nameToFind) {
-    for (var location in locations) {
-      if (location.getName() == nameToFind) {
-        return location;
-      }
-    }
-    return null;
   }
 }
 
 void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  final List<Location> locations = [
-    Location(name: 'Location 1'),
-    Location(name: 'Location 2'),
-    Location(name: 'Location 3'),
-    // Add more locations here
+  // I'm setting up a list of dummy locations for the purpose of this example.
+  List<Location> locations = [
+    Location(name: 'Central Park', description: 'A large public, urban park.'),
+    // ... add more locations here
   ];
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Location List App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: LocationListView(locations: locations),
-    );
-  }
+  // The main function is the entry point of the app, where I run my app with LocationListView.
+  runApp(MaterialApp(home: LocationListView(locationList: locations)));
 }
