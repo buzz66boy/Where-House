@@ -46,7 +46,7 @@ class _LocationViewState extends State<LocationView> {
 
   @override
   Widget build(BuildContext context) {
-    // Dummy location data, replace with your actual data retrieval logic
+    // Dummy location data
     var dummyLocation = Location(
       name: 'Central Park',
       description: 'A large public, urban park in the city center.',
