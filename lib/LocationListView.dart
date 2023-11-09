@@ -2,19 +2,6 @@ import Location.dart;
 import LocationView.dart;
 import 'package:flutter/material.dart';
 
-// Here's the Location class representing the data for a location.
-class Location {
-  String name;
-  String description;
-
-  Location({required this.name, required this.description});
-
-  // Method to check if the location name matches the one we're looking for.
-  bool isName(String nameToCheck) {
-    return name == nameToCheck;
-  }
-}
-
 // I'm making a LocationListView widget to display a list of Locations.
 class LocationListView extends StatefulWidget {
   final List<Location> locationList;
