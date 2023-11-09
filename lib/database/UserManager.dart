@@ -46,11 +46,11 @@ class UserManager {
       if (result.isNotEmpty) {
         return false;
       }
-
+      String checkedOutItemsJson = User.encodeCheckedOutItems(checkedOutItems);
       User newUser = User(
         uid: uid,
         name: name,
-        checkedOutItems: checkedOutItems,
+        checkedOutItemsJson: checkedOutItemsJson,
       );
 
       bool success = await newUser.setUser();
@@ -84,7 +84,7 @@ class UserManager {
 
       if (existingUser.uid == uid) {
         if (name != null) existingUser.name = name;
-        if (checkedOutItems != null) existingUser.checkedOutItems = checkedOutItems;
+        if (checkedOutItems != null) existingUser.checkedOutItemsJson = User.encodeCheckedOutItems(checkedOutItems);
 
         await existingUser.setUser();
         return existingUser;
@@ -109,7 +109,7 @@ class UserManager {
         return User(
           uid: user['uid'],
           name: user['name'],
-          checkedOutItems: _decodeCheckedOutItems(user['checkedOutItems']),
+          checkedOutItemsJson: User.encodeCheckedOutItems(user['checkedOutItems']),
         );
       }).toList();
     } catch (e) {

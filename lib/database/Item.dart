@@ -7,7 +7,7 @@ class Item {
   String name;
   String description;
   List<String> barcodes;
-  Map<int, int> locationQuantities;
+  String locationQuantitiesJson;
   int defaultLocation;
 
   Item({
@@ -15,15 +15,13 @@ class Item {
     required this.name,
     required this.description,
     required this.barcodes,
-    required this.locationQuantities,
+    required this.locationQuantitiesJson,
     required this.defaultLocation,
   });
 
-  // Method to fetch an item from the database by UID
   static Future<Item> getItem(int uid) async {
     Database db = await openDatabase('WhereHouse.db');
-    List<Map> results = await db.query(
-        'Item', where: 'UID = ?', whereArgs: [uid]);
+    List<Map> results = await db.query('Item', where: 'UID = ?', whereArgs: [uid]);
     await db.close();
 
     if (results.isNotEmpty) {
@@ -32,8 +30,7 @@ class Item {
         name: results[0]['name'],
         description: results[0]['description'],
         barcodes: results[0]['barcodes'].split(','),
-        locationQuantities: Map<int, int>.from(
-            results[0]['locationQuantities']),
+        locationQuantitiesJson: encodeLocationQuantities(results[0]['checkedOutItems']),
         defaultLocation: results[0]['defaultLocation'],
       );
     } else {
@@ -41,12 +38,10 @@ class Item {
     }
   }
 
-  // Method to update an item in the database
   Future<bool> setItem() async {
     Database db = await openDatabase('WhereHouse.db');
     try {
-      await db.update(
-          'Item', this.toMap(), where: 'uid = ?', whereArgs: [this.uid]);
+      await db.update('Item', toMap(), where: 'uid = ?', whereArgs: [this.uid]);
       await db.close();
       return true;
     } catch (e) {
@@ -56,23 +51,33 @@ class Item {
     }
   }
 
-  // Method to convert the item into a map for database storage
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
       'name': name,
       'description': description,
       'barcodes': barcodes.join(','),
-      'locationQuantities': locationQuantities,
+      'locationQuantities': jsonEncode(locationQuantitiesJson),
       'defaultLocation': defaultLocation,
     };
   }
 
-  @override
-  String toString() {
-    return 'Dog{id: $uid, name: $name, age: $description, barcodes: $barcodes, Location Quantities: $locationQuantities, default location: $defaultLocation}';
+
+  static String encodeLocationQuantities(Map<int, int> locationQuantities) {
+    Map<String, int> stringKeyMap = locationQuantities.map((key, value) => MapEntry(key.toString(), value));
+    return jsonEncode(stringKeyMap);
   }
 
+  static Map<int, int> decodeLocationQuantities(String json) {
+    Map<String, int> stringKeyMap = Map<String, int>.from(jsonDecode(json));
+    Map<int, int> intKeyMap = stringKeyMap.map((key, value) => MapEntry(int.parse(key), value));
+    return intKeyMap;
+  }
 
+  @override
+  String toString() {
+    return 'Item{uid: $uid, name: $name, description: $description, barcodes: $barcodes, locationQuantities: $locationQuantitiesJson, defaultLocation: $defaultLocation}';
+  }
 }
+
 

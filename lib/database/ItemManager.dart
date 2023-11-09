@@ -54,13 +54,13 @@ class ItemManager {
 
         return false;
       }
-
+      String locationQuantitiesJson = Item.encodeLocationQuantities(locationQuantities);
       Item newItem = Item(
         uid: uid,
         name: name,
         description: description,
         barcodes: barcodes,
-        locationQuantities: locationQuantities,
+        locationQuantitiesJson: locationQuantitiesJson,
         defaultLocation: defaultLocation,
       );
 
@@ -102,7 +102,7 @@ class ItemManager {
 
       if (description != null) existingItem.description = description;
 
-      if (locationQuantities != null) existingItem.locationQuantities = locationQuantities;
+      if (locationQuantities != null) existingItem.locationQuantitiesJson = Item.encodeLocationQuantities(locationQuantities);
 
       if (defaultLocation != null) existingItem.defaultLocation = defaultLocation;
 
@@ -130,7 +130,7 @@ class ItemManager {
           name: item['name'],
           description: item['description'],
           barcodes: item['barcodes'].split(','),
-          locationQuantities: Map<int, int>.from(item['locationQuantities']),
+          locationQuantitiesJson: Item.encodeLocationQuantities(item['checkedOutItems']),
           defaultLocation: item['defaultLocation'],
         );
       }).toList();
@@ -138,6 +138,10 @@ class ItemManager {
       print(e);
       return [];
     }
+  }
+
+  static Map<int, int> _decodeLocationQuantities(String json) {
+    return Map<int, int>.from(jsonDecode(json));
   }
 }
 
