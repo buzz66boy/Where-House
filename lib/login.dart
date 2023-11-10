@@ -41,6 +41,19 @@ class _BackgroundVideoState extends State<BackgroundVideo> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Container(
+                    width: 300, // Set the desired width
+                    child: const Center(
+                      child: Image(
+                        image: AssetImage("assets/WhereHouse.png"),
+                        width: 270,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 // Add a username text field
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
