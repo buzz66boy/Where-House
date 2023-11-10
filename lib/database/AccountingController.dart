@@ -1,19 +1,66 @@
-class AccountingController {
-  AccountingLogView accountingLogView;
+// Imports Code
+import 'AccountingLogView.dart';
+import 'TransactionView.dart';
+import 'AccountingController.dart';
 
-  AccountingController(this.accountingLogView);
+// Imports Packages
+import 'package:sqflite/sqflite.dart';
+import 'dart:async';
 
-  List<TransactionView> getTransactions() => accountingLogView.getTransactions();
+class Transaction {
+  int uid;
 
-  TransactionView? getTransactionById(int uniqueId) =>
-      accountingLogView.getTransactionById(uniqueId);
+  Transaction({
+    required this.uid,
+  });
 
-  void addTransaction(TransactionView transactionView) =>
-      accountingLogView.addTransaction(transactionView);
+  static Future<Transaction> getTransaction(int uniqueId) async {
+    Database db = await openDatabase('WhereHouse.db');
+    List<Map> results =
+        await db.query('Transaction', where: 'UID = ?', whereArgs: [uniqueId]);
+    await db.close();
 
-  void updateTransaction(TransactionView transactionView) =>
-      accountingLogView.updateTransaction(transactionView);
+    if (results.isNotEmpty) {
+      return Transaction(
+        uid: results[0]['uid'],
+      );
+    } else {
+      throw Exception("Transaction not found in the database");
+    }
+  }
 
-  void deleteTransaction(int uniqueId) =>
-      accountingLogView.deleteTransaction(uniqueId);
+  Future<bool> setTransaction() async {
+    Database db = await openDatabase('WhereHouse.db');
+    try {
+      await db
+          .update('Transaction', toMap(), where: 'uid = ?', whereArgs: [uid]);
+      await db.close();
+      return true;
+    } catch (e) {
+      print(e);
+      await db.close();
+      return false;
+    }
+  }
+
+  Map<String, dynamic> toMap() {
+    return {'uid': uid};
+  }
+
+  bool overwrite(Transaction newTransaction, Transaction oldTransaction) {
+    if (newTransaction != null &&
+        oldTransaction != null &&
+        doesTransactionExist(oldTransaction)) {
+      replaceTransactionInLog(newTransaction, oldTransaction);
+      return true;
+    }
+    return false;
+  }
+
+  // Other transaction methods...
+
+  @override
+  String toString() {
+    return 'Transaction{id: $uid}';
+  }
 }

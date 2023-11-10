@@ -1,39 +1,40 @@
-// Imports Code
-import 'AccountingLogView.dart';
-import 'TransactionView.dart';
-import 'AccountingController.dart';
-
-// Imports Packages 
 import 'package:sqflite/sqflite.dart';
 import 'dart:async';
 
 class Transaction {
-  int uid;
+  int transactionUid;
+  int userUid;
+  int itemUid;
+  int locationUid;
 
   Transaction({
-    required this.uid,
+    required this.transactionUid,
+    required this.userUid,
+    required this.itemUid,
+    required this.locationUid,
   });
 
-  static Future<Transaction> getTransaction(int uniqueId) async {
+  static Future<Transaction> getTransaction(int transactionId) async {
     Database db = await openDatabase('WhereHouse.db');
-    List<Map> results =
-        await db.query('Transaction', where: 'UID = ?', whereArgs: [uniqueId]);
+    List<Map> results = await db.query('Transaction', where: 'transactionUid = ?', whereArgs: [transactionId]);
     await db.close();
 
     if (results.isNotEmpty) {
       return Transaction(
-        uid: results[0]['uid'],
+        transactionUid: results[0]['transactionUid'],
+        userUid: results[0]['userUid'],
+        itemUid: results[0]['itemUid'],
+        locationUid: results[0]['locationUid'],
       );
     } else {
       throw Exception("Transaction not found in the database");
     }
   }
 
-  Future<bool> setTransaction() async {
+  Future<bool> updateTransaction() async {
     Database db = await openDatabase('WhereHouse.db');
     try {
-      await db
-          .update('Transaction', toMap(), where: 'uid = ?', whereArgs: [uid]);
+      await db.update('Transaction', toMap(), where: 'transactionUid = ?', whereArgs: [transactionUid]);
       await db.close();
       return true;
     } catch (e) {
@@ -44,23 +45,16 @@ class Transaction {
   }
 
   Map<String, dynamic> toMap() {
-    return {'uid': uid};
+    return {
+      'transactionUid': transactionUid,
+      'userUid': userUid,
+      'itemUid': itemUid,
+      'locationUid': locationUid
+    };
   }
-
-  bool overwrite(Transaction newTransaction, Transaction oldTransaction) {
-    if (newTransaction != null &&
-        oldTransaction != null &&
-        doesTransactionExist(oldTransaction)) {
-      replaceTransactionInLog(newTransaction, oldTransaction);
-      return true;
-    }
-    return false;
-  }
-
-  // Other transaction methods...
 
   @override
   String toString() {
-    return 'Transaction{id: $uid}';
+    return 'Transaction{transactionUid: $transactionUid, userUid: $userUid, itemUid: $itemUid, locationUid: $locationUid}';
   }
 }
