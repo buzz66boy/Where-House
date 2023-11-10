@@ -7,16 +7,14 @@ class Item {
   String name;
   String description;
   List<String> barcodes;
-  String locationQuantities;
-  int defaultLocation;
+  int locationUID;
 
   Item({
     required this.uid,
     required this.name,
     required this.description,
     required this.barcodes,
-    required this.locationQuantities,
-    required this.defaultLocation,
+    required this.locationUID,
   });
 
   static Future<Item> getItem(int uid) async {
@@ -30,8 +28,7 @@ class Item {
         name: results[0]['name'],
         description: results[0]['description'],
         barcodes: results[0]['barcodes'].split(','),
-        locationQuantities: jsonDecode(results[0]['locationQuantities']),
-        defaultLocation: results[0]['defaultLocation'],
+        locationUID: results[0]['locationUID'],
       );
     } else {
       throw Exception("Item not found in the database");
@@ -62,8 +59,7 @@ class Item {
       name: map['name'],
       description: map['description'],
       barcodes: (map['barcodes'] as String).split(','),
-      locationQuantities: jsonDecode(map['locationQuantities']),
-      defaultLocation: map['defaultLocation'],
+      locationUID: map['locationUID'],
     );
   }
 
@@ -73,26 +69,15 @@ class Item {
       'name': name,
       'description': description,
       'barcodes': barcodes.join(','),
-      'locationQuantities': jsonEncode(locationQuantities),
-      'defaultLocation': defaultLocation,
+      'locationUID': locationUID,
     };
   }
 
 
-  static String encodeLocationQuantities(Map<int, int> locationQuantities) {
-    Map<String, int> stringKeyMap = locationQuantities.map((key, value) => MapEntry(key.toString(), value));
-    return jsonEncode(stringKeyMap);
-  }
-
-/*   static Map<int, int> decodeLocationQuantities(String json) {
-    Map<String, int> stringKeyMap = Map<String, int>.from(jsonDecode(json));
-    Map<int, int> intKeyMap = stringKeyMap.map((key, value) => MapEntry(int.parse(key), value));
-    return intKeyMap;
-  }*/
 
   @override
   String toString() {
-    return 'Item{uid: $uid, name: $name, description: $description, barcodes: $barcodes, locationQuantities: $jsonDecode($locationQuantities), defaultLocation: $defaultLocation}';
+    return 'Item{uid: $uid, name: $name, description: $description, barcodes: $barcodes, locationQuantities: $locationUID}';
   }
 }
 
