@@ -42,19 +42,40 @@ class UserManager {
               'name TEXT, '
               'description TEXT, '
               'barcodes TEXT, '
-              'locationQuantities TEXT, '
-              'defaultLocation INTEGER'
+              'locationUID INTEGER, '
+              ')',
+        );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS Transaction('
+              'transactionUid INTEGER PRIMARY KEY, '
+              'userUid INTEGER, '
+              'itemUid INTEGER, '
+              'locationUid INTEGER, '
+              'FOREIGN KEY (userUid) REFERENCES User(uid), '
+              'FOREIGN KEY (itemUid) REFERENCES Item(uid), '
+              'FOREIGN KEY (locationUid) REFERENCES Location(uid)'
+              ')',
+        );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS LocationItemCount('
+              'locationUid INTEGER, '
+              'itemUid INTEGER, '
+              'itemCount INTEGER, '
+              'PRIMARY KEY (locationUid, itemUid), '
+              'FOREIGN KEY (locationUid) REFERENCES Location(uid), '
+              'FOREIGN KEY (itemUid) REFERENCES Item(uid)'
               ')',
         );
       },
       version: 1,
     );
+
   }
 
   Future<bool> addUser(
       int uid,
       String name,
-      Map<int, int> checkedOutItems,
+      List<int> checkedOutItems,
       ) async {
     try {
       database = await openDatabase('WhereHouse.db');
@@ -67,11 +88,11 @@ class UserManager {
       if (result.isNotEmpty) {
         return false;
       }
-      String checkedOutItemsJson = encodeCheckedOutItems(checkedOutItems);
+
       User newUser = User(
         uid: uid,
         name: name,
-        checkedOutItems: checkedOutItemsJson,
+        checkedOutItems: checkedOutItems,
       );
 
       bool success = await newUser.setUser();
@@ -97,7 +118,7 @@ class UserManager {
   Future<User?> editUser({
     required int uid,
     String? name,
-    Map<int, int>? checkedOutItems,
+    List<int>? checkedOutItems,
   }) async {
     User? existingUser;
 
@@ -107,7 +128,7 @@ class UserManager {
 
       if (existingUser.uid == uid) {
         if (name != null) existingUser.name = name;
-        if (checkedOutItems != null) existingUser.checkedOutItems = encodeCheckedOutItems(checkedOutItems);
+        if (checkedOutItems != null) existingUser.checkedOutItems = checkedOutItems;
 
         await existingUser.setUser();
         return existingUser;
@@ -139,7 +160,7 @@ class UserManager {
         return User(
           uid: user['uid'],
           name: user['name'],
-          checkedOutItems: jsonDecode(user['checkedOutItems']),
+          checkedOutItems: user['checkedOutItems'],
         );
       }).toList();
     } catch (e) {
@@ -173,7 +194,7 @@ class UserManager {
       List<User> users = userMaps.map((userMap) => User.fromMap(userMap)).toList();
 
       for (User user in users) {
-        await addUser(user.uid, user.name, user.checkedOutItems as Map<int, int>);
+        await addUser(user.uid, user.name, user.checkedOutItems);
       }
 
       return true;
@@ -183,9 +204,6 @@ class UserManager {
     }
   }
 
-  static String encodeCheckedOutItems(Map<int, int> checkedOutItems) {
-    Map<String, int> stringKeyMap = checkedOutItems.map((key, value) => MapEntry(key.toString(), value));
-    return jsonEncode(stringKeyMap);
-  }
+
 }
 

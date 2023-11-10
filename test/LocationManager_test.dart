@@ -6,7 +6,7 @@ import 'package:wherehouse/database/LocationManager.dart';
 import 'package:wherehouse/database/Location.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-//import 'package:matcher/src/equals_matcher.dart' as matcher;
+import 'package:matcher/src/equals_matcher.dart' as matcher;
 
 
 
@@ -21,67 +21,120 @@ Future<void> main() async {
   await locationManager.initializeDatabase();
 
 
-  test('Add and Query Location', () async {
 
-    const int uid = 1;
-    const String name = 'Warehouse A';
-    const int defaultLocation = 1;
+  test('Add Duplicate Location', () async {
+    // Arrange
+    LocationManager locationManager = LocationManager();
 
-    // Add location
-    final result = await locationManager.addLocation(1, 'LocationName', 42);
+    // Act
+    bool success1 = await locationManager.addLocation(2, 'Location A', 10);
+    bool success2 = await locationManager.addLocation(2, 'Location B', 20);
 
-    // Perform assertions based on the result
-    expect(result, isTrue);
-
-
-    // Query location
-    List<Location> locations = await locationManager.queryLocations();
-    expect(locations, hasLength(1));
-
-    // Verify location details
-    expect(locations[0].uid, uid);
-    expect(locations[0].name, name);
-    expect(locations[0].defaultLocation, defaultLocation);
+    // Assert
+    expect(success1, isTrue);
+    expect(success2, isFalse);
   });
 
   test('Remove Location', () async {
-    const int uid = 1;
-    const String name = 'Warehouse A';
-    const int defaultLocation = 101;
+    // Arrange
+    LocationManager locationManager = LocationManager();
+    await locationManager.addLocation(3, 'Location C', 30);
 
-    // Add location
-    bool locationAdded = await locationManager.addLocation(
-        uid, name, defaultLocation);
-    expect(locationAdded, isTrue);
+    // Act
+    bool success = await locationManager.removeLocation(3);
 
-    // Remove location
-    bool locationRemoved = await locationManager.removeLocation(uid);
-    expect(locationRemoved, isTrue);
-
-    // Query locations, should be empty
-    List<Location> locations = await locationManager.queryLocations();
-    expect(locations, isEmpty);
+    // Assert
+    expect(success, isTrue);
   });
 
-  // Add more LocationManager tests as needed...
+  test('Remove Non-existent Location', () async {
+    // Arrange
+    LocationManager locationManager = LocationManager();
 
-  test('Get Location', () async {
-    const int uid = 1;
-    const String name = 'Warehouse A';
-    const int defaultLocation = 101;
+    // Act
+    bool success = await locationManager.removeLocation(999);
 
-    // Create and set location
-    Location location = Location(
-        uid: uid, name: name, defaultLocation: defaultLocation);
-    bool setLocationResult = await location.setLocation();
-    expect(setLocationResult, isTrue);
+    // Assert
+    expect(success, isFalse);
+  });
 
-    // Retrieve location
-    Location retrievedLocation = await Location.getLocation(uid);
+  test('Edit Location', () async {
+    // Arrange
+    LocationManager locationManager = LocationManager();
+    await locationManager.addLocation(4, 'Location D', 40);
 
-    // Verify location details
-    expect(retrievedLocation.uid, uid);
-    expect(retrievedLocation.name, name);
-    expect(retrievedLocation.defaultLocation, defaultLocation);
+    // Act
+    Location? editedLocation = await locationManager.editLocation(uid: 4, name: 'Edited Location', defaultLocation: 44);
+
+    // Assert
+    expect(editedLocation, isNotNull);
+    expect(editedLocation!.name, matcher.equals('Edited Location'));
+    expect(editedLocation.defaultLocation, matcher.equals(44));
+  });
+
+  test('Edit Non-existent Location', () async {
+    // Arrange
+    LocationManager locationManager = LocationManager();
+
+    // Act
+    Location? editedLocation = await locationManager.editLocation(uid: 999, name: 'Edited Location', defaultLocation: 99);
+
+    // Assert
+    expect(editedLocation, isNull);
+  });
+
+  test('Query Locations', () async {
+    // Arrange
+    LocationManager locationManager = LocationManager();
+    await locationManager.addLocation(5, 'Location E1', 50);
+    await locationManager.addLocation(6, 'Location E2', 60);
+
+    // Act
+    List<Location> locations = await locationManager.queryLocations();
+
+    // Assert
+    expect(locations.length, matcher.equals(2));
+    expect(locations[0].uid, matcher.equals(5));
+    expect(locations[1].uid, matcher.equals(6));
+  });
+
+  test('Query Locations with Filter', () async {
+    // Arrange
+    LocationManager locationManager = LocationManager();
+    await locationManager.addLocation(7, 'Location F1', 70);
+    await locationManager.addLocation(8, 'Location F2', 80);
+
+    // Act
+    List<Location> locations = await locationManager.queryLocations('F1');
+
+    // Assert
+    expect(locations.length, matcher.equals(1));
+    expect(locations[0].uid, matcher.equals(7));
+  });
+
+  test('Export Locations', () async {
+    // Arrange
+    LocationManager locationManager = LocationManager();
+    await locationManager.addLocation(9, 'Location G1', 90);
+    await locationManager.addLocation(10, 'Location G2', 100);
+
+    // Act
+    bool success = await locationManager.exportLocations('locations_export.json');
+
+    // Assert
+    expect(success, isTrue);
+  });
+
+  test('Import Locations', () async {
+    // Arrange
+    LocationManager locationManager = LocationManager();
+    await locationManager.addLocation(11, 'Location H1', 110);
+    await locationManager.addLocation(12, 'Location H2', 120);
+
+    // Act
+    bool success = await locationManager.importLocations('locations_export.json');
+
+    // Assert
+    expect(success, isTrue);
   });
 }

@@ -4,7 +4,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
 import 'Item.dart';
-//import 'pathtoAccountingLog.dart'
+
 
 class ItemManager {
   late Database database;
@@ -27,8 +27,8 @@ class ItemManager {
               'name TEXT, '
               'description TEXT, '
               'barcodes TEXT, '
-              'locationQuantities TEXT, '
-              'defaultLocation INTEGER'
+              'locationUID INTEGER, '
+              'FOREIGN KEY (locationUID) REFERENCES Location(uid)'
               ')',
         );
         await db.execute(
@@ -45,6 +45,27 @@ class ItemManager {
               'checkedOutItems TEXT'
               ')',
         );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS Transaction('
+              'transactionUid INTEGER PRIMARY KEY, '
+              'userUid INTEGER, '
+              'itemUid INTEGER, '
+              'locationUid INTEGER, '
+              'FOREIGN KEY (userUid) REFERENCES User(uid), '
+              'FOREIGN KEY (itemUid) REFERENCES Item(uid), '
+              'FOREIGN KEY (locationUid) REFERENCES Location(uid)'
+              ')',
+        );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS LocationItemCount('
+              'locationUid INTEGER, '
+              'itemUid INTEGER, '
+              'itemCount INTEGER, '
+              'PRIMARY KEY (locationUid, itemUid), '
+              'FOREIGN KEY (locationUid) REFERENCES Location(uid), '
+              'FOREIGN KEY (itemUid) REFERENCES Item(uid)'
+              ')',
+        );
       },
       version: 1,
     );
@@ -55,8 +76,7 @@ class ItemManager {
       String name,
       String description,
       List<String> barcodes,
-      Map<int, int> locationQuantities,
-      int defaultLocation,
+      int locationUID,
       ) async {
     try {
       database = await openDatabase('WhereHouse.db');
@@ -70,17 +90,19 @@ class ItemManager {
 
         return false;
       }
-      String locationQuantitiesJson = encodeLocationQuantities(locationQuantities);
+
       Item newItem = Item(
         uid: uid,
         name: name,
         description: description,
         barcodes: barcodes,
-        locationQuantities: locationQuantitiesJson,
-        defaultLocation: defaultLocation,
+        locationUID: locationUID,
       );
 
       bool success = await newItem.setItem();
+      if (success) {
+        await updateItemCount(locationUID, uid, 1);
+      }
 
       return success;
     } catch (e) {
@@ -93,8 +115,14 @@ class ItemManager {
   Future<bool> removeItem(int uid) async {
     try {
       database = await openDatabase('WhereHouse.db');
-      int rowsDeleted = await database.delete(
-          'items', where: 'UID = ?', whereArgs: [uid]);
+      Item itemToRemove = await Item.getItem(uid);
+
+      int rowsDeleted = await database.delete('Item', where: 'UID = ?', whereArgs: [uid]);
+
+      if (rowsDeleted > 0) {
+        await updateItemCount(itemToRemove.locationUID, uid, -1);
+      }
+
       return rowsDeleted > 0;
     } catch (e) {
       print(e);
@@ -107,8 +135,7 @@ class ItemManager {
     String? name,
     List<String>? barcodes,
     String? description,
-    Map<int, int>? locationQuantities,
-    int? defaultLocation,
+    int? locationUID,
   }) async {
     database = await openDatabase('WhereHouse.db');
     Item existingItem = await Item.getItem(uid);
@@ -120,9 +147,7 @@ class ItemManager {
 
       if (description != null) existingItem.description = description;
 
-      if (locationQuantities != null) existingItem.locationQuantities = encodeLocationQuantities(locationQuantities);
-
-      if (defaultLocation != null) existingItem.defaultLocation = defaultLocation;
+      if (locationUID != null) existingItem.locationUID = locationUID;
 
       try {
         await existingItem
@@ -137,6 +162,44 @@ class ItemManager {
     }
   }
 
+
+  Future<bool> updateItemCount(int locationUid, int itemUid, int itemCount) async {
+    try {
+      await database.update(
+        'LocationItemCount',
+        {'itemCount': itemCount},
+        where: 'locationUid = ? AND itemUid = ?',
+        whereArgs: [locationUid, itemUid],
+      );
+      return true;
+    } catch (e) {
+      print('Error updating item count: $e');
+      return false;
+    }
+  }
+
+  // Query item count for a location
+  Future<int?> queryItemCount(int locationUid, int itemUid) async {
+    try {
+      List<Map> result = await database.query(
+        'LocationItemCount',
+        columns: ['itemCount'],
+        where: 'locationUid = ? AND itemUid = ?',
+        whereArgs: [locationUid, itemUid],
+      );
+
+      if (result.isNotEmpty) {
+        return result[0]['itemCount'];
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Error querying item count: $e');
+      return null;
+    }
+  }
+
+
   Future<List<Item>> queryItems([String query = '']) async {
     try {
       database = await openDatabase('WhereHouse.db');
@@ -144,7 +207,7 @@ class ItemManager {
 
       if (query.isNotEmpty) {
         results = await database.query('Item',
-            where: 'name LIKE ? OR UID LIKE ? OR description LIKE ? OR barcodes LIKE ? OR location LIKE ?',
+            where: 'name LIKE ? OR uid LIKE ? OR description LIKE ? OR barcodes LIKE ? OR locationUID LIKE ?',
             whereArgs: List.filled(5, '%$query%'));
       } else {
         results = await database.query('Item');
@@ -156,8 +219,7 @@ class ItemManager {
           name: item['name'],
           description: item['description'],
           barcodes: item['barcodes'].split(','),
-          locationQuantities: jsonDecode(item['locationQuantities']),
-          defaultLocation: item['defaultLocation'],
+          locationUID: item['locationUID'],
         );
       }).toList();
     } catch (e) {
@@ -193,7 +255,7 @@ class ItemManager {
 
       for (Item item in items) {
 
-        await addItem(item.uid, item.name, item.description, item.barcodes, item.locationQuantities as Map<int, int>, item.defaultLocation);
+        await addItem(item.uid, item.name, item.description, item.barcodes, item.locationUID);
       }
 
       return true;
@@ -203,10 +265,6 @@ class ItemManager {
     }
   }
 
-  static String encodeLocationQuantities(Map<int, int> locationQuantities) {
-    Map<String, int> stringKeyMap = locationQuantities.map((key, value) => MapEntry(key.toString(), value));
-    return jsonEncode(stringKeyMap);
-  }
 }
 
 

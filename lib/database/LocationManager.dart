@@ -34,8 +34,7 @@ class LocationManager {
               'name TEXT, '
               'description TEXT, '
               'barcodes TEXT, '
-              'locationQuantities TEXT, '
-              'defaultLocation INTEGER'
+              'locationUID TEXT, '
               ')',
         );
         await db.execute(
@@ -43,6 +42,28 @@ class LocationManager {
               'uid INTEGER PRIMARY KEY, '
               'name TEXT, '
               'checkedOutItems TEXT'
+              ')',
+        );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS Transaction('
+              'transactionUid INTEGER PRIMARY KEY, '
+              'userUid INTEGER, '
+              'itemUid INTEGER, '
+              'locationUid INTEGER, '
+              'timestamp INTEGER, '
+              'FOREIGN KEY (userUid) REFERENCES User(uid), '
+              'FOREIGN KEY (itemUid) REFERENCES Item(uid), '
+              'FOREIGN KEY (locationUid) REFERENCES Location(uid)'
+              ')',
+        );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS LocationItemCount('
+              'locationUid INTEGER, '
+              'itemUid INTEGER, '
+              'itemCount INTEGER, '
+              'PRIMARY KEY (locationUid, itemUid), '
+              'FOREIGN KEY (locationUid) REFERENCES Location(uid), '
+              'FOREIGN KEY (itemUid) REFERENCES Item(uid)'
               ')',
         );
       },
@@ -145,7 +166,6 @@ class LocationManager {
       return [];
     }
   }
-
 
 
   // Export locations to a file
