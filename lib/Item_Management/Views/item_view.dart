@@ -249,6 +249,18 @@ class _ItemViewState extends State<ItemView> {
 
                   Text('Default Location: ${widget.item.locationUID}'),
                   ElevatedButton(
+                    child: Text('Check Out'),
+                    onPressed: () {
+                      // lending controller here
+                    },
+                  ),
+                  ElevatedButton(
+                    child: Text('Return'),
+                    onPressed: () {
+                      // lending controller here
+                    },
+                  ),
+                  ElevatedButton(
                     child: Text('Edit Item'),
                     onPressed: () {
                       setState(() => switchState = !switchState);
