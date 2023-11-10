@@ -179,14 +179,38 @@ class ItemManager {
   }
 
   // Query item count for a location
-  Future<int?> queryItemCount(int locationUid, int itemUid) async {
+  Future<int?> queryItemCount({int? locationUid, int? itemUid}) async {
     try {
-      List<Map> result = await database.query(
-        'LocationItemCount',
-        columns: ['itemCount'],
-        where: 'locationUid = ? AND itemUid = ?',
-        whereArgs: [locationUid, itemUid],
-      );
+      List<Map> result;
+
+      if (locationUid != null && itemUid != null) {
+        // Query based on both locationUid and itemUid
+        result = await database.query(
+          'LocationItemCount',
+          columns: ['itemCount'],
+          where: 'locationUid = ? AND itemUid = ?',
+          whereArgs: [locationUid, itemUid],
+        );
+      } else if (locationUid != null) {
+        // Query based on locationUid only
+        result = await database.query(
+          'LocationItemCount',
+          columns: ['itemCount'],
+          where: 'locationUid = ?',
+          whereArgs: [locationUid],
+        );
+      } else if (itemUid != null) {
+        // Query based on itemUid only
+        result = await database.query(
+          'LocationItemCount',
+          columns: ['itemCount'],
+          where: 'itemUid = ?',
+          whereArgs: [itemUid],
+        );
+      } else {
+
+        return null;
+      }
 
       if (result.isNotEmpty) {
         return result[0]['itemCount'];
