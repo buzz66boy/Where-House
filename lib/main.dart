@@ -1,17 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:wherehouse/Item_Management/Controllers/item_controller.dart';
+import 'package:wherehouse/database/Item.dart';
+import 'package:wherehouse/database/ItemManager.dart';
 
 void main() {
-  runApp(const MyApp());
+  ItemManager itemManager = ItemManager();
+  ItemController itemController = ItemController(itemManager: itemManager);
+  runApp(MyApp(
+    itemManager: itemManager,
+    itemController: itemController,
+  ));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+  final ItemManager itemManager;
+  final ItemController itemController;
+  MyApp({
+    super.key,
+    required this.itemManager,
+    required this.itemController,
+  });
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Where?House',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -31,13 +44,29 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // home: ItemView(item: item),
+      // home: ItemListView(
+      //   itemList: [item, item, item, item, item, item],
+      //   confirmSelect: true,
+      // )
+
+      home: MyHomePage(
+        title: 'Where?House Main Menu',
+        itemController: itemController,
+        itemManager: itemManager,
+      ),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  final ItemManager itemManager;
+  final ItemController itemController;
+  MyHomePage(
+      {super.key,
+      required this.title,
+      required this.itemManager,
+      required this.itemController});
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -55,19 +84,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
+  final Item item = Item(
+      uid: 10,
+      name: 'Copier Toner',
+      description:
+          'Tones Copiers but sometimes this is not enough and it needs to tone other things like koalas and crazy kangaroos in the outback',
+      barcodes: ['1234', '4321'],
+      locationQuantities: <int, int>{1: 2, 3: 4},
+      defaultLocation: 0);
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -105,21 +129,35 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            ElevatedButton(
+                onPressed: () {
+                  widget.itemController.showItem(context, item);
+                },
+                child: Text("Scan")),
+            ElevatedButton(
+                onPressed: () {
+                  widget.itemController
+                      .showItemList(context, [item, item], null);
+                },
+                child: Text("Search Items")),
+            ElevatedButton(onPressed: () {}, child: Text("Manage Locations")),
+            ElevatedButton(onPressed: () {}, child: Text("Manage Users")),
+            ElevatedButton(
+                onPressed: () {}, child: Text("Transaction History")),
+            ElevatedButton(onPressed: () {}, child: Text("Settings")),
+            ElevatedButton(
+                onPressed: () {
+                  widget.itemController
+                      .getItemSelection(context, [item, item]).then((item) {
+                    if (item != null) {
+                      debugPrint(item.name + " selected");
+                    }
+                  });
+                },
+                child: Text("Testing Button")),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
