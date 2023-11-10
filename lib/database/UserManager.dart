@@ -1,18 +1,21 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+import 'dart:convert';
 import 'User.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 //import 'pathtoAccountingLog.dart'
 
 class UserManager {
   late Database database;
 
   UserManager() {
-    _initializeDatabase();
+    initializeDatabase();
   }
 
-  Future<void> _initializeDatabase() async {
+  Future<void> initializeDatabase() async {
+
     String databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'WhereHouse.db');
 
@@ -26,6 +29,23 @@ class UserManager {
               'checkedOutItems TEXT'
               ')',
         );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS Location('
+              'uid INTEGER PRIMARY KEY, '
+              'name TEXT, '
+              'defaultLocation INTEGER'
+              ')',
+        );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS Item('
+              'uid INTEGER PRIMARY KEY, '
+              'name TEXT, '
+              'description TEXT, '
+              'barcodes TEXT, '
+              'locationQuantities TEXT, '
+              'defaultLocation INTEGER'
+              ')',
+        );
       },
       version: 1,
     );
@@ -37,6 +57,7 @@ class UserManager {
       Map<int, int> checkedOutItems,
       ) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       final result = await database.query(
         'User',
         where: 'uid = ?',
@@ -46,29 +67,30 @@ class UserManager {
       if (result.isNotEmpty) {
         return false;
       }
-
+      String checkedOutItemsJson = encodeCheckedOutItems(checkedOutItems);
       User newUser = User(
         uid: uid,
         name: name,
-        checkedOutItems: checkedOutItems,
+        checkedOutItems: checkedOutItemsJson,
       );
 
       bool success = await newUser.setUser();
 
       return success;
     } catch (e) {
-      print('Error adding user: $e');
-      return false;
+        print('Error adding user: $e');
+        return false;
     }
   }
 
   Future<bool> removeUser(int uid) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       int rowsDeleted = await database.delete('User', where: 'uid = ?', whereArgs: [uid]);
       return rowsDeleted > 0;
     } catch (e) {
-      print(e);
-      return false;
+        print(e);
+        return false;
     }
   }
 
@@ -80,11 +102,12 @@ class UserManager {
     User? existingUser;
 
     try {
+      database = await openDatabase('WhereHouse.db');
       existingUser = await User.getUser(uid);
 
       if (existingUser.uid == uid) {
         if (name != null) existingUser.name = name;
-        if (checkedOutItems != null) existingUser.checkedOutItems = checkedOutItems;
+        if (checkedOutItems != null) existingUser.checkedOutItems = encodeCheckedOutItems(checkedOutItems);
 
         await existingUser.setUser();
         return existingUser;
@@ -92,29 +115,77 @@ class UserManager {
         return null;
       }
     } catch (e) {
-      print(e);
-      return null;
+        print(e);
+        return null;
     }
   }
 
-  Future<List<User>> queryUsers(String query) async {
+  Future<List<User>> queryUsers([String query = '']) async {
     try {
-      List<Map> results = await database.query(
-        'User',
-        where: 'name LIKE ? OR UID LIKE ?',
-        whereArgs: List.filled(2, '%$query%'),
-      );
+      database = await openDatabase('WhereHouse.db');
+      List<Map> results;
+
+      if (query.isNotEmpty) {
+        results = await database.query(
+          'User',
+          where: 'name LIKE ? OR UID LIKE ?',
+          whereArgs: List.filled(2, '%$query%'),
+        );
+      } else {
+        results = await database.query('User');
+      }
 
       return results.map((user) {
         return User(
           uid: user['uid'],
           name: user['name'],
-          checkedOutItems: Map<int, int>.from(user['checkedOutItems']),
+          checkedOutItems: jsonDecode(user['checkedOutItems']),
         );
       }).toList();
     } catch (e) {
-      print(e);
-      return [];
+        print(e);
+        return [];
     }
   }
+
+
+  Future<bool> exportUsers(String outfileLocation) async {
+    try {
+      database = await openDatabase('WhereHouse.db');
+      List<User> users = await queryUsers('');
+
+      String usersJson = jsonEncode(users.map((user) => user.toMap()).toList());
+
+      await File(outfileLocation).writeAsString(usersJson);
+      return true;
+    } catch (e) {
+        print('Error exporting users: $e');
+        return false;
+    }
+  }
+
+  // Import users from a file
+  Future<bool> importUsers(String infileLocation) async {
+    try {
+      String fileContent = await File(infileLocation).readAsString();
+
+      List<Map<String, dynamic>> userMaps = List<Map<String, dynamic>>.from(jsonDecode(fileContent));
+      List<User> users = userMaps.map((userMap) => User.fromMap(userMap)).toList();
+
+      for (User user in users) {
+        await addUser(user.uid, user.name, user.checkedOutItems as Map<int, int>);
+      }
+
+      return true;
+    } catch (e) {
+        print('Error importing users: $e');
+        return false;
+    }
+  }
+
+  static String encodeCheckedOutItems(Map<int, int> checkedOutItems) {
+    Map<String, int> stringKeyMap = checkedOutItems.map((key, value) => MapEntry(key.toString(), value));
+    return jsonEncode(stringKeyMap);
+  }
 }
+

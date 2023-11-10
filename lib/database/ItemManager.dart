@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+import 'dart:convert';
 import 'Item.dart';
 //import 'pathtoAccountingLog.dart'
 
@@ -9,10 +10,10 @@ class ItemManager {
   late Database database;
 
   ItemManager() {
-    _initializeDatabase();
+    initializeDatabase();
   }
 
-  Future<void> _initializeDatabase() async {
+  Future<void> initializeDatabase() async {
     String databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'WhereHouse.db');
 
@@ -30,6 +31,20 @@ class ItemManager {
               'defaultLocation INTEGER'
               ')',
         );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS Location('
+              'uid INTEGER PRIMARY KEY, '
+              'name TEXT, '
+              'defaultLocation INTEGER'
+              ')',
+        );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS User('
+              'uid INTEGER PRIMARY KEY, '
+              'name TEXT, '
+              'checkedOutItems TEXT'
+              ')',
+        );
       },
       version: 1,
     );
@@ -44,6 +59,7 @@ class ItemManager {
       int defaultLocation,
       ) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       final result = await database.query(
         'Item',
         where: 'uid = ?',
@@ -54,13 +70,13 @@ class ItemManager {
 
         return false;
       }
-
+      String locationQuantitiesJson = encodeLocationQuantities(locationQuantities);
       Item newItem = Item(
         uid: uid,
         name: name,
         description: description,
         barcodes: barcodes,
-        locationQuantities: locationQuantities,
+        locationQuantities: locationQuantitiesJson,
         defaultLocation: defaultLocation,
       );
 
@@ -76,6 +92,7 @@ class ItemManager {
 
   Future<bool> removeItem(int uid) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       int rowsDeleted = await database.delete(
           'items', where: 'UID = ?', whereArgs: [uid]);
       return rowsDeleted > 0;
@@ -93,6 +110,7 @@ class ItemManager {
     Map<int, int>? locationQuantities,
     int? defaultLocation,
   }) async {
+    database = await openDatabase('WhereHouse.db');
     Item existingItem = await Item.getItem(uid);
 
     if (existingItem.uid == uid) {
@@ -102,7 +120,7 @@ class ItemManager {
 
       if (description != null) existingItem.description = description;
 
-      if (locationQuantities != null) existingItem.locationQuantities = locationQuantities;
+      if (locationQuantities != null) existingItem.locationQuantities = encodeLocationQuantities(locationQuantities);
 
       if (defaultLocation != null) existingItem.defaultLocation = defaultLocation;
 
@@ -119,27 +137,79 @@ class ItemManager {
     }
   }
 
-  Future<List<Item>> queryItems(String query) async {
+  Future<List<Item>> queryItems([String query = '']) async {
     try {
-      List<Map> results = await database.query('Item',
-          where: 'name LIKE ? OR UID LIKE ? OR description LIKE ? OR barcodes LIKE ? OR location LIKE ?',
-          whereArgs: List.filled(5, '%$query%'));
+      database = await openDatabase('WhereHouse.db');
+      List<Map> results;
+
+      if (query.isNotEmpty) {
+        results = await database.query('Item',
+            where: 'name LIKE ? OR UID LIKE ? OR description LIKE ? OR barcodes LIKE ? OR location LIKE ?',
+            whereArgs: List.filled(5, '%$query%'));
+      } else {
+        results = await database.query('Item');
+      }
+
       return results.map((item) {
         return Item(
           uid: item['uid'],
           name: item['name'],
           description: item['description'],
           barcodes: item['barcodes'].split(','),
-          locationQuantities: Map<int, int>.from(item['locationQuantities']),
+          locationQuantities: jsonDecode(item['locationQuantities']),
           defaultLocation: item['defaultLocation'],
         );
       }).toList();
     } catch (e) {
-      print(e);
-      return [];
+        print(e);
+        return [];
     }
   }
+
+
+  // Export items to a file
+  Future<bool> exportItems(String outfileLocation) async {
+    try {
+      database = await openDatabase('WhereHouse.db');
+      List<Item> items = await queryItems('');
+
+      String itemsJson = jsonEncode(items.map((item) => item.toMap()).toList());
+
+      await File(outfileLocation).writeAsString(itemsJson);
+      return true;
+    } catch (e) {
+        print('Error exporting items: $e');
+        return false;
+    }
+  }
+
+  // Import items from a file
+  Future<bool> importItems(String infileLocation) async {
+    try {
+      String fileContent = await File(infileLocation).readAsString();
+
+      List<Map<String, dynamic>> itemMaps = List<Map<String, dynamic>>.from(jsonDecode(fileContent));
+      List<Item> items = itemMaps.map((itemMap) => Item.fromMap(itemMap)).toList();
+
+      for (Item item in items) {
+
+        await addItem(item.uid, item.name, item.description, item.barcodes, item.locationQuantities as Map<int, int>, item.defaultLocation);
+      }
+
+      return true;
+    } catch (e) {
+        print('Error importing items: $e');
+        return false;
+    }
+  }
+
+  static String encodeLocationQuantities(Map<int, int> locationQuantities) {
+    Map<String, int> stringKeyMap = locationQuantities.map((key, value) => MapEntry(key.toString(), value));
+    return jsonEncode(stringKeyMap);
+  }
 }
+
+
 
 
 
