@@ -9,10 +9,10 @@ class ItemManager {
   late Database database;
 
   ItemManager() {
-    _initializeDatabase();
+    initializeDatabase();
   }
 
-  Future<void> _initializeDatabase() async {
+  Future<void> initializeDatabase() async {
     String databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'WhereHouse.db');
 
@@ -60,7 +60,7 @@ class ItemManager {
         name: name,
         description: description,
         barcodes: barcodes,
-        locationQuantitiesJson: locationQuantitiesJson,
+        locationQuantities: locationQuantitiesJson,
         defaultLocation: defaultLocation,
       );
 
@@ -102,7 +102,7 @@ class ItemManager {
 
       if (description != null) existingItem.description = description;
 
-      if (locationQuantities != null) existingItem.locationQuantitiesJson = Item.encodeLocationQuantities(locationQuantities);
+      if (locationQuantities != null) existingItem.locationQuantities = Item.encodeLocationQuantities(locationQuantities);
 
       if (defaultLocation != null) existingItem.defaultLocation = defaultLocation;
 
@@ -130,7 +130,7 @@ class ItemManager {
           name: item['name'],
           description: item['description'],
           barcodes: item['barcodes'].split(','),
-          locationQuantitiesJson: Item.encodeLocationQuantities(item['checkedOutItems']),
+          locationQuantities: jsonDecode(item['locationQuantities']),
           defaultLocation: item['defaultLocation'],
         );
       }).toList();
@@ -140,9 +140,7 @@ class ItemManager {
     }
   }
 
-  static Map<int, int> _decodeLocationQuantities(String json) {
-    return Map<int, int>.from(jsonDecode(json));
-  }
+
 }
 
 

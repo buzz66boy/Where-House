@@ -3,16 +3,19 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
 import 'User.dart';
+import 'package:flutter/widgets.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 //import 'pathtoAccountingLog.dart'
 
 class UserManager {
   late Database database;
 
   UserManager() {
-    _initializeDatabase();
+    initializeDatabase();
   }
 
-  Future<void> _initializeDatabase() async {
+  Future<void> initializeDatabase() async {
+
     String databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'WhereHouse.db');
 
@@ -50,7 +53,7 @@ class UserManager {
       User newUser = User(
         uid: uid,
         name: name,
-        checkedOutItemsJson: checkedOutItemsJson,
+        checkedOutItems: checkedOutItemsJson,
       );
 
       bool success = await newUser.setUser();
@@ -84,7 +87,7 @@ class UserManager {
 
       if (existingUser.uid == uid) {
         if (name != null) existingUser.name = name;
-        if (checkedOutItems != null) existingUser.checkedOutItemsJson = User.encodeCheckedOutItems(checkedOutItems);
+        if (checkedOutItems != null) existingUser.checkedOutItems = User.encodeCheckedOutItems(checkedOutItems);
 
         await existingUser.setUser();
         return existingUser;
@@ -109,7 +112,7 @@ class UserManager {
         return User(
           uid: user['uid'],
           name: user['name'],
-          checkedOutItemsJson: User.encodeCheckedOutItems(user['checkedOutItems']),
+          checkedOutItems: jsonDecode(user['checkedOutItems']),
         );
       }).toList();
     } catch (e) {
@@ -118,7 +121,4 @@ class UserManager {
     }
   }
 
-  static Map<int, int> _decodeCheckedOutItems(String json) {
-    return Map<int, int>.from(jsonDecode(json));
-  }
 }

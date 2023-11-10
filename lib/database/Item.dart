@@ -7,7 +7,7 @@ class Item {
   String name;
   String description;
   List<String> barcodes;
-  String locationQuantitiesJson;
+  String locationQuantities;
   int defaultLocation;
 
   Item({
@@ -15,7 +15,7 @@ class Item {
     required this.name,
     required this.description,
     required this.barcodes,
-    required this.locationQuantitiesJson,
+    required this.locationQuantities,
     required this.defaultLocation,
   });
 
@@ -30,7 +30,7 @@ class Item {
         name: results[0]['name'],
         description: results[0]['description'],
         barcodes: results[0]['barcodes'].split(','),
-        locationQuantitiesJson: encodeLocationQuantities(results[0]['checkedOutItems']),
+        locationQuantities: jsonDecode(results[0]['locationQuantities']),
         defaultLocation: results[0]['defaultLocation'],
       );
     } else {
@@ -41,13 +41,18 @@ class Item {
   Future<bool> setItem() async {
     Database db = await openDatabase('WhereHouse.db');
     try {
-      await db.update('Item', toMap(), where: 'uid = ?', whereArgs: [this.uid]);
+      await db.insert(
+        'Item',
+        toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
       await db.close();
       return true;
+
     } catch (e) {
-      print(e);
-      await db.close();
-      return false;
+        print(e);
+        await db.close();
+        return false;
     }
   }
 
@@ -57,7 +62,7 @@ class Item {
       'name': name,
       'description': description,
       'barcodes': barcodes.join(','),
-      'locationQuantities': jsonEncode(locationQuantitiesJson),
+      'locationQuantities': jsonEncode(locationQuantities),
       'defaultLocation': defaultLocation,
     };
   }
@@ -68,15 +73,15 @@ class Item {
     return jsonEncode(stringKeyMap);
   }
 
-  static Map<int, int> decodeLocationQuantities(String json) {
+/*   static Map<int, int> decodeLocationQuantities(String json) {
     Map<String, int> stringKeyMap = Map<String, int>.from(jsonDecode(json));
     Map<int, int> intKeyMap = stringKeyMap.map((key, value) => MapEntry(int.parse(key), value));
     return intKeyMap;
-  }
+  }*/
 
   @override
   String toString() {
-    return 'Item{uid: $uid, name: $name, description: $description, barcodes: $barcodes, locationQuantities: $locationQuantitiesJson, defaultLocation: $defaultLocation}';
+    return 'Item{uid: $uid, name: $name, description: $description, barcodes: $barcodes, locationQuantities: $jsonDecode($locationQuantities), defaultLocation: $defaultLocation}';
   }
 }
 

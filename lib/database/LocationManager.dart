@@ -10,10 +10,10 @@ class LocationManager {
   late Database database;
 
   LocationManager() {
-    _initializeDatabase();
+    initializeDatabase();
   }
 
-  Future<void> _initializeDatabase() async {
+  Future<void> initializeDatabase() async {
     String databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'WhereHouse.db');
 

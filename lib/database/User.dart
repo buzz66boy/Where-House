@@ -5,12 +5,12 @@ import 'dart:async';
 class User {
   int uid;
   String name;
-  String checkedOutItemsJson;
+  String checkedOutItems;
 
   User({
     required this.uid,
     required this.name,
-    required this.checkedOutItemsJson,
+    required this.checkedOutItems,
   });
 
   static Future<User> getUser(int uid) async {
@@ -23,24 +23,31 @@ class User {
       return User(
         uid: results[0]['uid'],
         name: results[0]['name'],
-        checkedOutItemsJson: encodeCheckedOutItems(results[0]['checkedOutItems']),// changed to encode to meet
-        // parameters
+        checkedOutItems: jsonDecode(results[0]['checkedOutItems']),
+
       );
     } else {
       throw Exception("User not found in the database");
     }
   }
 
+
   Future<bool> setUser() async {
     Database db = await openDatabase('WhereHouse.db');
     try {
-      await db.update('User', toMap(), where: 'uid = ?', whereArgs: [this.uid]);
+      await db.insert(
+        'User',
+        toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+
       await db.close();
       return true;
+
     } catch (e) {
-      print(e);
-      await db.close();
-      return false;
+        print(e);
+        await db.close();
+        return false;
     }
   }
 
@@ -48,7 +55,7 @@ class User {
     return {
       'uid': uid,
       'name': name,
-      'checkedOutItems': jsonEncode(checkedOutItemsJson),
+      'checkedOutItems': jsonEncode(checkedOutItems),
     };
   }
 
@@ -58,14 +65,14 @@ class User {
     return jsonEncode(stringKeyMap);
   }
 
-  static Map<int, int> decodeCheckedOutItems(String json) {
+  /*static Map<int, int> decodeCheckedOutItems(String json) {
     Map<String, int> stringKeyMap = Map<String, int>.from(jsonDecode(json));
     Map<int, int> intKeyMap = stringKeyMap.map((key, value) => MapEntry(int.parse(key), value));
     return intKeyMap;
-  }
+  }*/
 
   @override
   String toString() {
-    return 'User{uid: $uid, name: $name, checkedOutItems: $checkedOutItemsJson}';
+    return 'User{uid: $uid, name: $jsonDecode($name), checkedOutItems: $checkedOutItems}';
   }
 }

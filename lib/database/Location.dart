@@ -31,13 +31,18 @@ class Location {
   Future<bool> setLocation() async {
     Database db = await openDatabase('WhereHouse.db');
     try {
-      await db.update('Location', toMap(), where: 'uid = ?', whereArgs: [this.uid]);
+      await db.insert(
+        'Location',
+        toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
       await db.close();
       return true;
+
     } catch (e) {
-      print(e);
-      await db.close();
-      return false;
+        print(e);
+        await db.close();
+        return false;
     }
   }
 
