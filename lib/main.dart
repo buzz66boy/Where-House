@@ -1,25 +1,22 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:wherehouse/Item_Management/Controllers/item_controller.dart';
 import 'package:wherehouse/database/Item.dart';
 import 'package:wherehouse/database/ItemManager.dart';
 
 void main() {
-  ItemManager itemManager = ItemManager();
-  ItemController itemController = ItemController(itemManager: itemManager);
-  runApp(MyApp(
-    itemManager: itemManager,
-    itemController: itemController,
-  ));
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final ItemManager itemManager;
-  final ItemController itemController;
-  MyApp({
-    super.key,
-    required this.itemManager,
-    required this.itemController,
-  });
+  late ItemManager itemManager;
+  late ItemController itemController;
+  MyApp({super.key}) {
+    ItemManager itemManager = ItemManager();
+    ItemController itemController = ItemController(itemManager: itemManager);
+  }
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -50,23 +47,32 @@ class MyApp extends StatelessWidget {
       //   confirmSelect: true,
       // )
 
-      home: MyHomePage(
-        title: 'Where?House Main Menu',
-        itemController: itemController,
-        itemManager: itemManager,
-      ),
+      home: MyHomePage(title: 'Where?House Main Menu'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  final ItemManager itemManager;
-  final ItemController itemController;
-  MyHomePage(
-      {super.key,
-      required this.title,
-      required this.itemManager,
-      required this.itemController});
+  late ItemManager itemManager;
+  late ItemController itemController;
+  final Item item = Item(
+      uid: 10,
+      name: 'Copier Toner',
+      description:
+          'Tones Copiers but sometimes this is not enough and it needs to tone other things like koalas and crazy kangaroos in the outback',
+      barcodes: ['1234', '4321'],
+      // locationQuantities: <int, int>{1: 2, 3: 4},
+      locationUID: 0);
+  MyHomePage({super.key, required this.title}) {
+    itemManager = ItemManager();
+    itemManager.initializeDatabase().then((value) {
+      itemManager.addItem(item.uid, item.name, item.description, item.barcodes,
+          item.locationUID);
+      itemManager.updateItemCount(0, item.uid, 3);
+      itemManager.updateItemCount(1, item.uid, 2);
+    });
+    itemController = ItemController(itemManager: itemManager);
+  }
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -84,14 +90,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final Item item = Item(
-      uid: 10,
-      name: 'Copier Toner',
-      description:
-          'Tones Copiers but sometimes this is not enough and it needs to tone other things like koalas and crazy kangaroos in the outback',
-      barcodes: ['1234', '4321'],
-      locationQuantities: <int, int>{1: 2, 3: 4},
-      defaultLocation: 0);
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -131,13 +129,13 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             ElevatedButton(
                 onPressed: () {
-                  widget.itemController.showItem(context, item);
+                  widget.itemController.showItem(context, widget.item);
                 },
                 child: Text("Scan")),
             ElevatedButton(
                 onPressed: () {
                   widget.itemController
-                      .showItemList(context, [item, item], null);
+                      .showItemList(context, [widget.item, widget.item], null);
                 },
                 child: Text("Search Items")),
             ElevatedButton(onPressed: () {}, child: Text("Manage Locations")),
@@ -147,12 +145,13 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton(onPressed: () {}, child: Text("Settings")),
             ElevatedButton(
                 onPressed: () {
-                  widget.itemController
-                      .getItemSelection(context, [item, item]).then((item) {
-                    if (item != null) {
-                      debugPrint(item.name + " selected");
-                    }
-                  });
+                  widget.itemController.createNewItem(context, 1234);
+                  // widget.itemController.getItemSelection(
+                  //     context, [widget.item, widget.item]).then((item) {
+                  //   if (item != null) {
+                  //     debugPrint(item.name + " selected");
+                  //   }
+                  // });
                 },
                 child: Text("Testing Button")),
           ],

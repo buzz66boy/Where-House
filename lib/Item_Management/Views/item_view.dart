@@ -5,9 +5,14 @@ import 'package:wherehouse/database/Item.dart';
 
 class ItemView extends StatefulWidget {
   final Item item;
+  final Map<int, int> locationQuantities;
   final ItemController itemController;
 
-  const ItemView({super.key, required this.item, required this.itemController});
+  const ItemView(
+      {super.key,
+      required this.item,
+      required this.itemController,
+      required this.locationQuantities});
 
   @override
   State<StatefulWidget> createState() => _ItemViewState();
@@ -91,11 +96,10 @@ class _ItemViewState extends State<ItemView> {
                       //FIXME: Add default location if not in map, and respect it as top list item
                       height: 200,
                       child: ListView.builder(
-                        itemCount: widget.item.locationQuantities.length,
+                        itemCount: widget.locationQuantities.length,
                         itemBuilder: (context, index) {
-                          final location = widget
-                              .item.locationQuantities.entries
-                              .toList()[index];
+                          final location =
+                              widget.locationQuantities.entries.toList()[index];
 
                           return ListTile(
                             title: Text(
@@ -170,26 +174,23 @@ class _ItemViewState extends State<ItemView> {
                   SizedBox(
                     height: 200,
                     child: ListView.builder(
-                      itemCount: widget.item.locationQuantities.length + 1,
+                      itemCount: widget.locationQuantities.length + 1,
                       itemBuilder: (context, index) {
-                        if (index <
-                            widget.item.locationQuantities.entries.length) {
-                          final location = widget
-                              .item.locationQuantities.entries
-                              .toList()[index];
+                        if (index < widget.locationQuantities.length) {
+                          final location =
+                              widget.locationQuantities.entries.toList()[index];
 
                           return ListTile(
                             leading: IconButton(
                               icon: Icon(Icons.add_circle),
                               onPressed: () {
-                                if (widget.item.locationQuantities
+                                if (widget.locationQuantities
                                         .containsKey(location.key) &&
-                                    (widget.item
-                                            .locationQuantities[location.key] !=
+                                    (widget.locationQuantities[location.key] !=
                                         null)) {
-                                  widget.item.locationQuantities[location.key] =
-                                      (widget.item.locationQuantities[
-                                              location.key] as int) +
+                                  widget.locationQuantities[location.key] =
+                                      (widget.locationQuantities[location.key]
+                                              as int) +
                                           1;
                                   widget.itemController
                                       .setItemInfo(widget.item);
@@ -199,17 +200,16 @@ class _ItemViewState extends State<ItemView> {
                             trailing: IconButton(
                               icon: Icon(Icons.remove_circle),
                               onPressed: () {
-                                if (widget.item.locationQuantities
+                                if (widget.locationQuantities
                                         .containsKey(location.key) &&
-                                    (widget.item
-                                            .locationQuantities[location.key] !=
+                                    (widget.locationQuantities[location.key] !=
                                         null) &&
-                                    (widget.item.locationQuantities[
-                                            location.key] as int >
+                                    (widget.locationQuantities[location.key]
+                                            as int >
                                         0)) {
-                                  widget.item.locationQuantities[location.key] =
-                                      (widget.item.locationQuantities[
-                                              location.key] as int) -
+                                  widget.locationQuantities[location.key] =
+                                      (widget.locationQuantities[location.key]
+                                              as int) -
                                           1;
                                   widget.itemController
                                       .setItemInfo(widget.item);

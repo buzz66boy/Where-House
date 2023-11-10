@@ -19,12 +19,29 @@ class ItemController {
   }
 
   void showItem(context, Item it) async {
+    List<Map<String, dynamic>>? quant =
+        await itemManager.queryItemCount(itemUid: it.uid);
+    if (quant != null) {
+      //build locationQuant map
+
+      debugPrint('Test Message: ' + quant.toString());
+      Map<int, int> locQuant = Map();
+      for (int i = 0; i < quant.length; i++) {}
+    }
+    int q = 0;
+    // if (quant != null) {
+    //   q = quant as int;
+    // } else {
+    //   q = 0;
+    // }
+    Map<int, int> locQ = {0: q, 1: 2};
     await Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) => ItemView(
                   item: it,
                   itemController: this,
+                  locationQuantities: locQ,
                 )));
   }
 
@@ -74,5 +91,49 @@ class ItemController {
       //handle searching users with item
     } else if (description != null) {}
     return itemList;
+  }
+
+  Future<Item?> createNewItem(context, int barcode) async {
+    //prompt for item name
+    String? text = await _getItemName(context);
+
+    // _getItemName(context, nameController)
+    //     .then((value) => {debugPrint(nameController.text)});
+    if (text != null) {
+      debugPrint(text);
+    }
+    //create item via ItemManager
+
+    //go to item view in edit mode
+    // return null;
+  }
+
+  Future<String?> _getItemName(context) async {
+    TextEditingController nameController = TextEditingController();
+    return showDialog(
+        context: context,
+        builder: (BuildContext ctx) {
+          return AlertDialog(
+            title: Text('New Item Name'),
+            content: TextField(
+              controller: nameController,
+              decoration: InputDecoration(hintText: 'Item Name'),
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(nameController.text);
+                },
+                child: Text('Save'),
+              ),
+            ],
+          );
+        });
   }
 }
