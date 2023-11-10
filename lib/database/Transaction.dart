@@ -26,7 +26,8 @@ class Transaction {
   Future<bool> setTransaction() async {
     Database db = await openDatabase('WhereHouse.db');
     try {
-      await db.update('Item', toMap(), where: 'uid = ?', whereArgs: [uid]);
+      await db
+          .update('Transaction', toMap(), where: 'uid = ?', whereArgs: [uid]);
       await db.close();
       return true;
     } catch (e) {
