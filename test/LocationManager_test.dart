@@ -16,11 +16,10 @@ Future<void> main() async {
 
   late LocationManager locationManager;
 
-  setUp(() async {
-    locationManager = LocationManager();
+  locationManager = LocationManager();
 
-    await locationManager.initializeDatabase();
-  });
+  await locationManager.initializeDatabase();
+
 
   test('Add and Query Location', () async {
 

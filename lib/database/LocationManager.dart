@@ -28,8 +28,25 @@ class LocationManager {
               'defaultLocation INTEGER'
               ')',
         );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS Item('
+              'uid INTEGER PRIMARY KEY, '
+              'name TEXT, '
+              'description TEXT, '
+              'barcodes TEXT, '
+              'locationQuantities TEXT, '
+              'defaultLocation INTEGER'
+              ')',
+        );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS User('
+              'uid INTEGER PRIMARY KEY, '
+              'name TEXT, '
+              'checkedOutItems TEXT'
+              ')',
+        );
       },
-      version: 2,
+      version: 1,
     );
   }
 

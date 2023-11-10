@@ -29,6 +29,23 @@ class UserManager {
               'checkedOutItems TEXT'
               ')',
         );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS Location('
+              'uid INTEGER PRIMARY KEY, '
+              'name TEXT, '
+              'defaultLocation INTEGER'
+              ')',
+        );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS Item('
+              'uid INTEGER PRIMARY KEY, '
+              'name TEXT, '
+              'description TEXT, '
+              'barcodes TEXT, '
+              'locationQuantities TEXT, '
+              'defaultLocation INTEGER'
+              ')',
+        );
       },
       version: 1,
     );

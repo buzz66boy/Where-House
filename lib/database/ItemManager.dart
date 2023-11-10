@@ -31,6 +31,20 @@ class ItemManager {
               'defaultLocation INTEGER'
               ')',
         );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS Location('
+              'uid INTEGER PRIMARY KEY, '
+              'name TEXT, '
+              'defaultLocation INTEGER'
+              ')',
+        );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS User('
+              'uid INTEGER PRIMARY KEY, '
+              'name TEXT, '
+              'checkedOutItems TEXT'
+              ')',
+        );
       },
       version: 1,
     );
