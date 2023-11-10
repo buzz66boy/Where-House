@@ -69,24 +69,24 @@ class _BackgroundVideoState extends State<BackgroundVideo> {
                     ),
                   ),
                 ),
-                const SizedBox(
-                    height: 16), // Add some spacing between the text fields
-                // Add a password text field
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Container(
-                    width: 200, // Set the desired width
-                    color: Colors.white, // Set the background color
-                    child: const Center(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                        ),
-                        obscureText: true, // To hide the entered password
-                      ),
-                    ),
-                  ),
-                ),
+                // const SizedBox(
+                //     height: 16), // Add some spacing between the text fields
+                // // Add a password text field
+                // Padding(
+                //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                //   child: Container(
+                //     width: 200, // Set the desired width
+                //     color: Colors.white, // Set the background color
+                //     child: const Center(
+                //       child: TextField(
+                //         decoration: InputDecoration(
+                //           labelText: 'Password',
+                //         ),
+                //         obscureText: true, // To hide the entered password
+                //       ),
+                //     ),
+                //   ),
+                // ),
                 const SizedBox(height: 30),
                 ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -96,16 +96,16 @@ class _BackgroundVideoState extends State<BackgroundVideo> {
                       // Handle sign-in logic here
                     },
                     child: const Text('SIGN IN')),
-                const SizedBox(height: 15),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  onPressed: () {
-                    // Handle sign-in logic here
-                  },
-                  child: const Text('CREATE'),
-                ),
+                // const SizedBox(height: 15),
+                // ElevatedButton(
+                //   style: ElevatedButton.styleFrom(
+                //     padding: EdgeInsets.symmetric(vertical: 14),
+                //   ),
+                //   onPressed: () {
+                //     // Handle sign-in logic here
+                //   },
+                //   child: const Text('CREATE'),
+                // ),
               ],
             ),
           ),
