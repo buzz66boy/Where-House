@@ -40,6 +40,7 @@ class UserManager {
       Map<int, int> checkedOutItems,
       ) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       final result = await database.query(
         'User',
         where: 'uid = ?',
@@ -49,7 +50,7 @@ class UserManager {
       if (result.isNotEmpty) {
         return false;
       }
-      String checkedOutItemsJson = User.encodeCheckedOutItems(checkedOutItems);
+      String checkedOutItemsJson = encodeCheckedOutItems(checkedOutItems);
       User newUser = User(
         uid: uid,
         name: name,
@@ -67,6 +68,7 @@ class UserManager {
 
   Future<bool> removeUser(int uid) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       int rowsDeleted = await database.delete('User', where: 'uid = ?', whereArgs: [uid]);
       return rowsDeleted > 0;
     } catch (e) {
@@ -83,11 +85,12 @@ class UserManager {
     User? existingUser;
 
     try {
+      database = await openDatabase('WhereHouse.db');
       existingUser = await User.getUser(uid);
 
       if (existingUser.uid == uid) {
         if (name != null) existingUser.name = name;
-        if (checkedOutItems != null) existingUser.checkedOutItems = User.encodeCheckedOutItems(checkedOutItems);
+        if (checkedOutItems != null) existingUser.checkedOutItems = encodeCheckedOutItems(checkedOutItems);
 
         await existingUser.setUser();
         return existingUser;
@@ -102,6 +105,7 @@ class UserManager {
 
   Future<List<User>> queryUsers([String query = '']) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       List<Map> results;
 
       if (query.isNotEmpty) {
@@ -130,6 +134,7 @@ class UserManager {
 
   Future<bool> exportUsers(String outfileLocation) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       List<User> users = await queryUsers('');
 
       String usersJson = jsonEncode(users.map((user) => user.toMap()).toList());
@@ -159,6 +164,11 @@ class UserManager {
         print('Error importing users: $e');
         return false;
     }
+  }
+
+  static String encodeCheckedOutItems(Map<int, int> checkedOutItems) {
+    Map<String, int> stringKeyMap = checkedOutItems.map((key, value) => MapEntry(key.toString(), value));
+    return jsonEncode(stringKeyMap);
   }
 }
 

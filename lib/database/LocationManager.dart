@@ -29,7 +29,7 @@ class LocationManager {
               ')',
         );
       },
-      version: 1,
+      version: 2,
     );
   }
 
@@ -40,6 +40,7 @@ class LocationManager {
       int defaultLocation,
       ) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       final result = await database.query(
         'Location',
         where: 'uid = ?',
@@ -59,19 +60,20 @@ class LocationManager {
       bool success = await newLocation.setLocation();
       return success;
     } catch (e) {
-      print('Error adding location: $e');
-      return false;
+        print('Error adding location: $e');
+        return false;
     }
   }
 
   // Remove location method
   Future<bool> removeLocation(int uid) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       int rowsDeleted = await database.delete('Location', where: 'UID = ?', whereArgs: [uid]);
       return rowsDeleted > 0;
     } catch (e) {
-      print(e);
-      return false;
+        print(e);
+        return false;
     }
   }
 
@@ -81,6 +83,7 @@ class LocationManager {
     String? name,
     int? defaultLocation,
   }) async {
+    database = await openDatabase('WhereHouse.db');
     Location existingLocation = await Location.getLocation(uid);
 
     if (existingLocation.uid == uid) {
@@ -102,6 +105,7 @@ class LocationManager {
   // Query locations method
   Future<List<Location>> queryLocations([String query = '']) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       List<Map> results;
 
       if (query.isNotEmpty) {
@@ -130,6 +134,7 @@ class LocationManager {
   // Export locations to a file
   Future<bool> exportLocations(String outfileLocation) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       List<Location> locations = await queryLocations('');
 
       String locationsJson = jsonEncode(locations.map((location) => location.toMap()).toList());

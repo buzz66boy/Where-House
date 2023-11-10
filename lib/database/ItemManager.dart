@@ -45,6 +45,7 @@ class ItemManager {
       int defaultLocation,
       ) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       final result = await database.query(
         'Item',
         where: 'uid = ?',
@@ -55,7 +56,7 @@ class ItemManager {
 
         return false;
       }
-      String locationQuantitiesJson = Item.encodeLocationQuantities(locationQuantities);
+      String locationQuantitiesJson = encodeLocationQuantities(locationQuantities);
       Item newItem = Item(
         uid: uid,
         name: name,
@@ -77,6 +78,7 @@ class ItemManager {
 
   Future<bool> removeItem(int uid) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       int rowsDeleted = await database.delete(
           'items', where: 'UID = ?', whereArgs: [uid]);
       return rowsDeleted > 0;
@@ -94,6 +96,7 @@ class ItemManager {
     Map<int, int>? locationQuantities,
     int? defaultLocation,
   }) async {
+    database = await openDatabase('WhereHouse.db');
     Item existingItem = await Item.getItem(uid);
 
     if (existingItem.uid == uid) {
@@ -103,7 +106,7 @@ class ItemManager {
 
       if (description != null) existingItem.description = description;
 
-      if (locationQuantities != null) existingItem.locationQuantities = Item.encodeLocationQuantities(locationQuantities);
+      if (locationQuantities != null) existingItem.locationQuantities = encodeLocationQuantities(locationQuantities);
 
       if (defaultLocation != null) existingItem.defaultLocation = defaultLocation;
 
@@ -122,6 +125,7 @@ class ItemManager {
 
   Future<List<Item>> queryItems([String query = '']) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       List<Map> results;
 
       if (query.isNotEmpty) {
@@ -152,6 +156,7 @@ class ItemManager {
   // Export items to a file
   Future<bool> exportItems(String outfileLocation) async {
     try {
+      database = await openDatabase('WhereHouse.db');
       List<Item> items = await queryItems('');
 
       String itemsJson = jsonEncode(items.map((item) => item.toMap()).toList());
@@ -182,6 +187,11 @@ class ItemManager {
         print('Error importing items: $e');
         return false;
     }
+  }
+
+  static String encodeLocationQuantities(Map<int, int> locationQuantities) {
+    Map<String, int> stringKeyMap = locationQuantities.map((key, value) => MapEntry(key.toString(), value));
+    return jsonEncode(stringKeyMap);
   }
 }
 
