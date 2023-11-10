@@ -165,112 +165,116 @@ class _ItemViewState extends State<ItemView> {
               title: Text('Item View: ${widget.item.name}'),
             ),
             body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Text('Name: ${item.name}'),
-                  Text('Description: ${widget.item.description}'),
-                  Text('Location - Quantities'),
-                  SizedBox(
-                    height: 200,
-                    child: ListView.builder(
-                      itemCount: widget.locationQuantities.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index < widget.locationQuantities.length) {
-                          final location =
-                              widget.locationQuantities.entries.toList()[index];
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Text('Name: ${item.name}'),
+                    Text('Description: ${widget.item.description}'),
+                    Text('Location - Quantities'),
+                    SizedBox(
+                      height: 200,
+                      child: ListView.builder(
+                        itemCount: widget.locationQuantities.length + 1,
+                        itemBuilder: (context, index) {
+                          if (index < widget.locationQuantities.length) {
+                            final location = widget.locationQuantities.entries
+                                .toList()[index];
+
+                            return ListTile(
+                              leading: IconButton(
+                                icon: Icon(Icons.add_circle),
+                                onPressed: () {
+                                  if (widget.locationQuantities
+                                          .containsKey(location.key) &&
+                                      (widget.locationQuantities[
+                                              location.key] !=
+                                          null)) {
+                                    widget.locationQuantities[location.key] =
+                                        (widget.locationQuantities[location.key]
+                                                as int) +
+                                            1;
+                                    widget.itemController
+                                        .setItemInfo(widget.item);
+                                  }
+                                },
+                              ),
+                              trailing: IconButton(
+                                icon: Icon(Icons.remove_circle),
+                                onPressed: () {
+                                  if (widget.locationQuantities
+                                          .containsKey(location.key) &&
+                                      (widget.locationQuantities[
+                                              location.key] !=
+                                          null) &&
+                                      (widget.locationQuantities[location.key]
+                                              as int >
+                                          0)) {
+                                    widget.locationQuantities[location.key] =
+                                        (widget.locationQuantities[location.key]
+                                                as int) -
+                                            1;
+                                    widget.itemController
+                                        .setItemInfo(widget.item);
+                                  }
+                                },
+                              ),
+                              title: Text(
+                                  'Location: ${location.key.toString()}'), //FIXME: get location name
+                              subtitle: Text(
+                                  'Quantity: ${location.value.toString()}'),
+                            );
+                          } else {
+                            //last entry
+                            return ElevatedButton(
+                                onPressed: () =>
+                                    {}, //FIXME: Add location controller call here
+                                child: Text("Add to other Location"));
+                          }
+                        },
+                      ),
+                    ),
+                    Text('Barcodes'),
+                    SizedBox(
+                      height: 200,
+                      child: ListView.builder(
+                        itemCount: widget.item.barcodes.length,
+                        itemBuilder: (context, index) {
+                          final barcode = widget.item.barcodes[index];
 
                           return ListTile(
-                            leading: IconButton(
-                              icon: Icon(Icons.add_circle),
-                              onPressed: () {
-                                if (widget.locationQuantities
-                                        .containsKey(location.key) &&
-                                    (widget.locationQuantities[location.key] !=
-                                        null)) {
-                                  widget.locationQuantities[location.key] =
-                                      (widget.locationQuantities[location.key]
-                                              as int) +
-                                          1;
-                                  widget.itemController
-                                      .setItemInfo(widget.item);
-                                }
-                              },
-                            ),
-                            trailing: IconButton(
-                              icon: Icon(Icons.remove_circle),
-                              onPressed: () {
-                                if (widget.locationQuantities
-                                        .containsKey(location.key) &&
-                                    (widget.locationQuantities[location.key] !=
-                                        null) &&
-                                    (widget.locationQuantities[location.key]
-                                            as int >
-                                        0)) {
-                                  widget.locationQuantities[location.key] =
-                                      (widget.locationQuantities[location.key]
-                                              as int) -
-                                          1;
-                                  widget.itemController
-                                      .setItemInfo(widget.item);
-                                }
-                              },
-                            ),
-                            title: Text(
-                                'Location: ${location.key.toString()}'), //FIXME: get location name
-                            subtitle:
-                                Text('Quantity: ${location.value.toString()}'),
+                            title: Text(barcode),
+                            // subtitle: barcode.buildSubtitle(context),
                           );
-                        } else {
-                          //last entry
-                          return ElevatedButton(
-                              onPressed: () =>
-                                  {}, //FIXME: Add location controller call here
-                              child: Text("Add to other Location"));
-                        }
+                        },
+                      ),
+                    ),
+
+                    Text('Default Location: ${widget.item.locationUID}'),
+                    ElevatedButton(
+                      child: Text('Check Out'),
+                      onPressed: () {
+                        // lending controller here
                       },
                     ),
-                  ),
-                  Text('Barcodes'),
-                  SizedBox(
-                    height: 200,
-                    child: ListView.builder(
-                      itemCount: widget.item.barcodes.length,
-                      itemBuilder: (context, index) {
-                        final barcode = widget.item.barcodes[index];
-
-                        return ListTile(
-                          title: Text(barcode),
-                          // subtitle: barcode.buildSubtitle(context),
-                        );
+                    ElevatedButton(
+                      child: Text('Return'),
+                      onPressed: () {
+                        // lending controller here
                       },
                     ),
-                  ),
-
-                  Text('Default Location: ${widget.item.locationUID}'),
-                  ElevatedButton(
-                    child: Text('Check Out'),
-                    onPressed: () {
-                      // lending controller here
-                    },
-                  ),
-                  ElevatedButton(
-                    child: Text('Return'),
-                    onPressed: () {
-                      // lending controller here
-                    },
-                  ),
-                  ElevatedButton(
-                    child: Text('Edit Item'),
-                    onPressed: () {
-                      setState(() => switchState = !switchState);
-                    },
-                  ),
-                  // Switch.adaptive(
-                  //     value: switchState,
-                  //     onChanged: (value) =>
-                  //         setState(() => switchState = value)),
-                ],
+                    ElevatedButton(
+                      child: Text('Edit Item'),
+                      onPressed: () {
+                        setState(() => switchState = !switchState);
+                      },
+                    ),
+                    // Switch.adaptive(
+                    //     value: switchState,
+                    //     onChanged: (value) =>
+                    //         setState(() => switchState = value)),
+                  ],
+                ),
               ),
             ),
           );
