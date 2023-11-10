@@ -15,7 +15,7 @@ void main() {
     User testUser = User(
       uid: 1,
       name: 'Test User',
-      checkedOutItemsJson: '{}', // Adjust based on your test data
+      checkedOutItems: '{}', // Adjust based on your test data
     );
 
     // Save the user to the database
