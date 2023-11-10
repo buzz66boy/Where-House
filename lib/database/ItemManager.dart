@@ -202,8 +202,8 @@ class ItemManager {
   }
 
 
-  Future<Map<String, dynamic>?> queryItemCount({int? locationUid, int? itemUid}) async {
-
+  Future<List<Map<String, dynamic>>?> queryItemCount(
+      {int? locationUid, int? itemUid}) async {
     try {
       database = await openDatabase('WhereHouse.db');
       List<Map<String, dynamic>> results;
@@ -223,12 +223,11 @@ class ItemManager {
           whereArgs: [locationUid],
         );
       } else {
-
         return null;
       }
 
       if (results.isNotEmpty) {
-        return results[0];
+        return results;
       } else {
         return null;
       }
