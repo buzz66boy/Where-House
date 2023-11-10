@@ -179,46 +179,38 @@ class ItemManager {
   }
 
   // Query item count for a location
-  Future<int?> queryItemCount({int? locationUid, int? itemUid}) async {
-    try {
-      List<Map> result;
+  Future<Map<String, dynamic>?> queryItemCount({int? locationUid, int? itemUid}) async {
 
-      if (locationUid != null && itemUid != null) {
-        // Query based on both locationUid and itemUid
-        result = await database.query(
+    try {
+      List<Map<String, dynamic>> results;
+
+      if (itemUid != null) {
+        // Query based on itemUid
+        results = await database.query(
           'LocationItemCount',
-          columns: ['itemCount'],
-          where: 'locationUid = ? AND itemUid = ?',
-          whereArgs: [locationUid, itemUid],
-        );
-      } else if (locationUid != null) {
-        // Query based on locationUid only
-        result = await database.query(
-          'LocationItemCount',
-          columns: ['itemCount'],
-          where: 'locationUid = ?',
-          whereArgs: [locationUid],
-        );
-      } else if (itemUid != null) {
-        // Query based on itemUid only
-        result = await database.query(
-          'LocationItemCount',
-          columns: ['itemCount'],
           where: 'itemUid = ?',
           whereArgs: [itemUid],
         );
+      } else if (locationUid != null) {
+        // Query based on locationUid
+        results = await database.query(
+          'LocationItemCount',
+          where: 'locationUid = ?',
+          whereArgs: [locationUid],
+        );
       } else {
-
+        // Both itemUid and locationUid are null, return null
         return null;
       }
 
-      if (result.isNotEmpty) {
-        return result[0]['itemCount'];
+      if (results.isNotEmpty) {
+        // Since each result is a map, just return the first result
+        return results[0];
       } else {
         return null;
       }
     } catch (e) {
-      print('Error querying item count: $e');
+      print('Error querying item row: $e');
       return null;
     }
   }
