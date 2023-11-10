@@ -165,12 +165,35 @@ class ItemManager {
 
   Future<bool> updateItemCount(int locationUid, int itemUid, int itemCount) async {
     try {
-      await database.update(
+      database = await openDatabase('WhereHouse.db');
+      // Check if the key pair already exists
+      List<Map> result = await database.query(
         'LocationItemCount',
-        {'itemCount': itemCount},
+        columns: ['itemCount'],
         where: 'locationUid = ? AND itemUid = ?',
         whereArgs: [locationUid, itemUid],
       );
+
+      if (result.isNotEmpty) {
+
+        await database.update(
+          'LocationItemCount',
+          {'itemCount': itemCount},
+          where: 'locationUid = ? AND itemUid = ?',
+          whereArgs: [locationUid, itemUid],
+        );
+      } else {
+
+        await database.insert(
+          'LocationItemCount',
+          {
+            'locationUid': locationUid,
+            'itemUid': itemUid,
+            'itemCount': itemCount,
+          },
+        );
+      }
+
       return true;
     } catch (e) {
       print('Error updating item count: $e');
@@ -178,10 +201,11 @@ class ItemManager {
     }
   }
 
-  // Query item count for a location
+
   Future<Map<String, dynamic>?> queryItemCount({int? locationUid, int? itemUid}) async {
 
     try {
+      database = await openDatabase('WhereHouse.db');
       List<Map<String, dynamic>> results;
 
       if (itemUid != null) {
@@ -199,12 +223,11 @@ class ItemManager {
           whereArgs: [locationUid],
         );
       } else {
-        // Both itemUid and locationUid are null, return null
+
         return null;
       }
 
       if (results.isNotEmpty) {
-        // Since each result is a map, just return the first result
         return results[0];
       } else {
         return null;
