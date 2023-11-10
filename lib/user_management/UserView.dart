@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:wherehouse/database/User.dart';
 
+import '../database/User.dart';
 
-
-class ViewUser extends StatelessWidget {
+class UserView extends StatelessWidget {
   final User user;
 
-  const ViewUser({Key? key, required this.user}) : super(key: key);
+  const UserView({Key? key, required this.user}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    /// Decode Json
+    Map<int, int> checkedOutItems = User.decodeCheckedOutItems(user.checkedOutItems);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(user.name),
@@ -20,18 +22,18 @@ class ViewUser extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text('User ID: ${user.uid}', style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 8), // Provides some spacing between text fields.
+            const SizedBox(height: 8),
             Text('Name: ${user.name}', style: const TextStyle(fontSize: 18)),
             const SizedBox(height: 8),
             const Text('Checked Out Items:', style: TextStyle(fontSize: 18)),
             Expanded(
               child: ListView.builder(
-                itemCount: user.checkedOutItems.length,
+                itemCount: checkedOutItems.length,
                 itemBuilder: (context, index) {
-                  int key = user.checkedOutItems.keys.elementAt(index);
+                  int key = checkedOutItems.keys.elementAt(index);
                   return ListTile(
                     title: Text('Item ID: $key'),
-                    subtitle: Text('Quantity: ${user.checkedOutItems[key]}'),
+                    subtitle: Text('Quantity: ${checkedOutItems[key]}'),
                   );
                 },
               ),
