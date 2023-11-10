@@ -25,7 +25,7 @@ class _ItemViewState extends State<ItemView> {
     super.initState();
     _nameController.text = widget.item.name;
     _descriptionController.text = widget.item.description;
-    _defLocationController.text = '${widget.item.defaultLocation}';
+    _defLocationController.text = '${widget.item.locationUID}';
   }
 
   @override
@@ -61,7 +61,7 @@ class _ItemViewState extends State<ItemView> {
                           switchState = !switchState;
                           widget.item.name = _nameController.text;
                           widget.item.description = _descriptionController.text;
-                          widget.item.defaultLocation = int.parse(
+                          widget.item.locationUID = int.parse(
                               _defLocationController
                                   .text); //FIXME: validate against known locations
                           widget.itemController
@@ -247,7 +247,7 @@ class _ItemViewState extends State<ItemView> {
                     ),
                   ),
 
-                  Text('Default Location: ${widget.item.defaultLocation}'),
+                  Text('Default Location: ${widget.item.locationUID}'),
                   ElevatedButton(
                     child: Text('Edit Item'),
                     onPressed: () {

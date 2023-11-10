@@ -61,4 +61,18 @@ class ItemController {
     return item;
     // Item();
   }
+
+  List<Item> getItems(int? uid, int? barcode, String? name, String? location,
+      String? user, String? description) {
+    List<Item> itemList = [];
+    if (uid != null) {
+    } else if (barcode != null) {
+    } else if (name != null) {
+    } else if (location != null) {
+      //handle searching locations
+    } else if (user != null) {
+      //handle searching users with item
+    } else if (description != null) {}
+    return itemList;
+  }
 }
