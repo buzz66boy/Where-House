@@ -1,9 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
 import 'User.dart';
-import 'package:flutter/widgets.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 //import 'pathtoAccountingLog.dart'
 
@@ -60,8 +60,8 @@ class UserManager {
 
       return success;
     } catch (e) {
-      print('Error adding user: $e');
-      return false;
+        print('Error adding user: $e');
+        return false;
     }
   }
 
@@ -70,8 +70,8 @@ class UserManager {
       int rowsDeleted = await database.delete('User', where: 'uid = ?', whereArgs: [uid]);
       return rowsDeleted > 0;
     } catch (e) {
-      print(e);
-      return false;
+        print(e);
+        return false;
     }
   }
 
@@ -95,18 +95,24 @@ class UserManager {
         return null;
       }
     } catch (e) {
-      print(e);
-      return null;
+        print(e);
+        return null;
     }
   }
 
-  Future<List<User>> queryUsers(String query) async {
+  Future<List<User>> queryUsers([String query = '']) async {
     try {
-      List<Map> results = await database.query(
-        'User',
-        where: 'name LIKE ? OR UID LIKE ?',
-        whereArgs: List.filled(2, '%$query%'),
-      );
+      List<Map> results;
+
+      if (query.isNotEmpty) {
+        results = await database.query(
+          'User',
+          where: 'name LIKE ? OR UID LIKE ?',
+          whereArgs: List.filled(2, '%$query%'),
+        );
+      } else {
+        results = await database.query('User');
+      }
 
       return results.map((user) {
         return User(
@@ -116,9 +122,43 @@ class UserManager {
         );
       }).toList();
     } catch (e) {
-      print(e);
-      return [];
+        print(e);
+        return [];
     }
   }
 
+
+  Future<bool> exportUsers(String outfileLocation) async {
+    try {
+      List<User> users = await queryUsers('');
+
+      String usersJson = jsonEncode(users.map((user) => user.toMap()).toList());
+
+      await File(outfileLocation).writeAsString(usersJson);
+      return true;
+    } catch (e) {
+        print('Error exporting users: $e');
+        return false;
+    }
+  }
+
+  // Import users from a file
+  Future<bool> importUsers(String infileLocation) async {
+    try {
+      String fileContent = await File(infileLocation).readAsString();
+
+      List<Map<String, dynamic>> userMaps = List<Map<String, dynamic>>.from(jsonDecode(fileContent));
+      List<User> users = userMaps.map((userMap) => User.fromMap(userMap)).toList();
+
+      for (User user in users) {
+        await addUser(user.uid, user.name, user.checkedOutItems as Map<int, int>);
+      }
+
+      return true;
+    } catch (e) {
+        print('Error importing users: $e');
+        return false;
+    }
+  }
 }
+

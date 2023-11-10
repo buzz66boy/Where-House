@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
@@ -119,11 +120,18 @@ class ItemManager {
     }
   }
 
-  Future<List<Item>> queryItems(String query) async {
+  Future<List<Item>> queryItems([String query = '']) async {
     try {
-      List<Map> results = await database.query('Item',
-          where: 'name LIKE ? OR UID LIKE ? OR description LIKE ? OR barcodes LIKE ? OR location LIKE ?',
-          whereArgs: List.filled(5, '%$query%'));
+      List<Map> results;
+
+      if (query.isNotEmpty) {
+        results = await database.query('Item',
+            where: 'name LIKE ? OR UID LIKE ? OR description LIKE ? OR barcodes LIKE ? OR location LIKE ?',
+            whereArgs: List.filled(5, '%$query%'));
+      } else {
+        results = await database.query('Item');
+      }
+
       return results.map((item) {
         return Item(
           uid: item['uid'],
@@ -135,13 +143,49 @@ class ItemManager {
         );
       }).toList();
     } catch (e) {
-      print(e);
-      return [];
+        print(e);
+        return [];
     }
   }
 
 
+  // Export items to a file
+  Future<bool> exportItems(String outfileLocation) async {
+    try {
+      List<Item> items = await queryItems('');
+
+      String itemsJson = jsonEncode(items.map((item) => item.toMap()).toList());
+
+      await File(outfileLocation).writeAsString(itemsJson);
+      return true;
+    } catch (e) {
+        print('Error exporting items: $e');
+        return false;
+    }
+  }
+
+  // Import items from a file
+  Future<bool> importItems(String infileLocation) async {
+    try {
+      String fileContent = await File(infileLocation).readAsString();
+
+      List<Map<String, dynamic>> itemMaps = List<Map<String, dynamic>>.from(jsonDecode(fileContent));
+      List<Item> items = itemMaps.map((itemMap) => Item.fromMap(itemMap)).toList();
+
+      for (Item item in items) {
+
+        await addItem(item.uid, item.name, item.description, item.barcodes, item.locationQuantities as Map<int, int>, item.defaultLocation);
+      }
+
+      return true;
+    } catch (e) {
+        print('Error importing items: $e');
+        return false;
+    }
+  }
 }
+
+
 
 
 

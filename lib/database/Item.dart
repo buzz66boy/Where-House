@@ -56,6 +56,17 @@ class Item {
     }
   }
 
+  factory Item.fromMap(Map<String, dynamic> map) {
+    return Item(
+      uid: map['uid'],
+      name: map['name'],
+      description: map['description'],
+      barcodes: (map['barcodes'] as String).split(','),
+      locationQuantities: jsonDecode(map['locationQuantities']),
+      defaultLocation: map['defaultLocation'],
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,

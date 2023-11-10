@@ -51,6 +51,15 @@ class User {
     }
   }
 
+  factory User.fromMap(Map<String, dynamic> map) {
+    return User(
+      uid: map['uid'],
+      name: map['name'],
+      checkedOutItems: map['checkedOutItems'],
+    );
+  }
+
+
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,

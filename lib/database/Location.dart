@@ -46,6 +46,14 @@ class Location {
     }
   }
 
+  factory Location.fromMap(Map<String, dynamic> map) {
+    return Location(
+      uid: map['uid'],
+      name: map['name'],
+      defaultLocation: map['defaultLocation'],
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,

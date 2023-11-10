@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
@@ -99,11 +100,18 @@ class LocationManager {
   }
 
   // Query locations method
-  Future<List<Location>> queryLocations(String query) async {
+  Future<List<Location>> queryLocations([String query = '']) async {
     try {
-      List<Map> results = await database.query('Location',
-          where: 'name LIKE ? OR UID LIKE ?',
-          whereArgs: List.filled(2, '%$query%'));
+      List<Map> results;
+
+      if (query.isNotEmpty) {
+        results = await database.query('Location',
+            where: 'name LIKE ? OR UID LIKE ?',
+            whereArgs: List.filled(2, '%$query%'));
+      } else {
+        results = await database.query('Location');
+      }
+
       return results.map((location) {
         return Location(
           uid: location['uid'],
@@ -116,4 +124,41 @@ class LocationManager {
       return [];
     }
   }
+
+
+
+  // Export locations to a file
+  Future<bool> exportLocations(String outfileLocation) async {
+    try {
+      List<Location> locations = await queryLocations('');
+
+      String locationsJson = jsonEncode(locations.map((location) => location.toMap()).toList());
+
+      await File(outfileLocation).writeAsString(locationsJson);
+      return true;
+    } catch (e) {
+        print('Error exporting locations: $e');
+        return false;
+    }
+  }
+
+  // Import locations from a file
+  Future<bool> importLocations(String infileLocation) async {
+    try {
+      String fileContent = await File(infileLocation).readAsString();
+
+      List<Map<String, dynamic>> locationMaps = List<Map<String, dynamic>>.from(jsonDecode(fileContent));
+      List<Location> locations = locationMaps.map((locationMap) => Location.fromMap(locationMap)).toList();
+
+      for (Location location in locations) {
+        await addLocation(location.uid, location.name, location.defaultLocation);
+      }
+
+      return true;
+    } catch (e) {
+        print('Error importing locations: $e');
+        return false;
+    }
+  }
 }
+
