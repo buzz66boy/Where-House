@@ -47,7 +47,7 @@ class ItemController {
   void checkinItem(int itemUid) async {
     List<Item?> qRes = await getItems(uid: itemUid, looseMatching: false);
     if (qRes != null && qRes.length > 0) {
-      // lendingController.checkIn(qRes[1]);
+      // lendingController.checkIn(qRes[0]);
     } else {
       throw Exception(
           "Item meant to be checked in not found via query: ${itemUid}");
@@ -58,27 +58,8 @@ class ItemController {
     List<Map<String, dynamic>>? quant =
         await itemManager.queryItemCount(itemUid: it.uid);
 
-    Map<int, int> locQuant = {};
-    if (quant != null) {
-      //build locationQuant map
-      //[{locationUid: 0, itemUid: 10, itemCount: 3}, {locationUid: 1, itemUid: 10, itemCount: 2}]
-      // debugPrint('Test Message: ' + quant.toString());
-      bool defLocHandled = false;
-      for (int i = 0; i < quant.length; i++) {
-        if (quant[i]['locationUid'] == it.locationUID) {
-          locQuant[quant[i]['locationUid']] = quant[i]['itemCount'];
-          defLocHandled = true;
-        }
-      }
-      if (!defLocHandled) {
-        locQuant[it.locationUID] = 0;
-      }
-      for (int i = 0; i < quant.length; i++) {
-        if (!defLocHandled || quant[i]['locationUid'] != it.locationUID) {
-          locQuant[quant[i]['locationUid']] = quant[i]['itemCount'];
-        }
-      }
-    }
+    Map<int, int> locQuant = await getItemLocationQuantities(item: it);
+
     await Navigator.push(
         context,
         MaterialPageRoute(
@@ -87,6 +68,41 @@ class ItemController {
                   itemController: this,
                   locationQuantities: locQuant,
                 )));
+  }
+
+  Future<Map<int, int>> getItemLocationQuantities(
+      {int? uid, Item? item}) async {
+    if (item == null && uid != null) {
+      item = (await getItems(
+          uid: uid, looseMatching: false))[0]; //FIXME: check for empty list
+    }
+    Map<int, int> locQuant = {};
+    if (item != null) {
+      List<Map<String, dynamic>>? quant =
+          await itemManager.queryItemCount(itemUid: item.uid);
+
+      if (quant != null) {
+        //build locationQuant map
+        //[{locationUid: 0, itemUid: 10, itemCount: 3}, {locationUid: 1, itemUid: 10, itemCount: 2}]
+        // debugPrint('Test Message: ' + quant.toString());
+        bool defLocHandled = false;
+        for (int i = 0; i < quant.length; i++) {
+          if (quant[i]['locationUid'] == item.locationUID) {
+            locQuant[quant[i]['locationUid']] = quant[i]['itemCount'];
+            defLocHandled = true;
+          }
+        }
+        if (!defLocHandled) {
+          locQuant[item.locationUID] = 0;
+        }
+        for (int i = 0; i < quant.length; i++) {
+          if (!defLocHandled || quant[i]['locationUid'] != item.locationUID) {
+            locQuant[quant[i]['locationUid']] = quant[i]['itemCount'];
+          }
+        }
+      }
+    }
+    return locQuant;
   }
 
   void updateItemLocationQuantities(int uid, Map<int, int> locQuant) async {
