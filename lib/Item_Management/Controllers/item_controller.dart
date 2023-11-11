@@ -18,42 +18,78 @@ class ItemController {
     return itemSelected;
   }
 
+  void itemScanned(context, int barcode) {
+    //get items matching barcode
+    //show items in itemList
+  }
+
   void showItem(context, Item it) async {
     List<Map<String, dynamic>>? quant =
         await itemManager.queryItemCount(itemUid: it.uid);
+
+    Map<int, int> locQuant = {};
     if (quant != null) {
       //build locationQuant map
-
-      debugPrint('Test Message: ' + quant.toString());
-      Map<int, int> locQuant = Map();
-      for (int i = 0; i < quant.length; i++) {}
+      //[{locationUid: 0, itemUid: 10, itemCount: 3}, {locationUid: 1, itemUid: 10, itemCount: 2}]
+      // debugPrint('Test Message: ' + quant.toString());
+      bool defLocHandled = false;
+      for (int i = 0; i < quant.length; i++) {
+        if (quant[i]['locationUid'] == it.locationUID) {
+          locQuant[quant[i]['locationUid']] = quant[i]['itemCount'];
+          defLocHandled = true;
+        }
+      }
+      if (!defLocHandled) {
+        locQuant[it.locationUID] = 0;
+      }
+      for (int i = 0; i < quant.length; i++) {
+        if (!defLocHandled || quant[i]['locationUid'] != it.locationUID) {
+          locQuant[quant[i]['locationUid']] = quant[i]['itemCount'];
+        }
+      }
     }
-    int q = 0;
-    // if (quant != null) {
-    //   q = quant as int;
-    // } else {
-    //   q = 0;
-    // }
-    Map<int, int> locQ = {0: q, 1: 2};
     await Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) => ItemView(
                   item: it,
                   itemController: this,
-                  locationQuantities: locQ,
+                  locationQuantities: locQuant,
                 )));
   }
 
+  void updateItemLocationQuantities(int uid, Map<int, int> locQuant) async {
+    locQuant.forEach((key, value) async {
+      await itemManager.updateItemCount(
+          key, uid, value); //FIXME: return bool for success
+    });
+  }
+
   void showItemList(
-      context, List<Item>? itemList, List<String>? itemUIDList) async {
+      {required BuildContext context,
+      List<Item>? itemList,
+      List<int>? itemUIDList}) async {
     if (itemList == null && itemUIDList == null) {
       //get all items
-      itemList = [];
+      itemList = await itemManager.queryItems();
     } else if (itemList == null && itemUIDList != null) {
       //get item list from uid list
       itemList = [];
+      Map<int, bool> uidHandled = {};
       for (var idx = 0; idx < itemUIDList.length; idx++) {
+        uidHandled[itemUIDList[idx]] = false;
+      }
+      for (var idx = 0; idx < itemUIDList.length; idx++) {
+        List<Item> tempQueryList =
+            await itemManager.queryItems(itemUIDList[idx].toString());
+
+        for (var n = 0; n < tempQueryList.length; n++) {
+          int id = tempQueryList[n].uid;
+          if (uidHandled.containsKey(id) && !(uidHandled[id] as bool)) {
+            itemList.add(tempQueryList[n]);
+            uidHandled[id] = true;
+          }
+        }
         // Item? item = await Item.getItem(itemUIDList[idx])
 
         // itemList.add(item);
@@ -72,10 +108,22 @@ class ItemController {
     }
   }
 
-  Item setItemInfo(Item item) {
+  Future<Item?> setItemInfo({
+    required int uid,
+    String? name,
+    List<String>? barcodes,
+    String? description,
+    int? locationUID,
+  }) async {
     // itemManager.editItem(uid: uid)
-    item.setItem();
-    return item;
+    debugPrint('Updating item');
+    return await itemManager.editItem(
+        uid: uid,
+        name: name,
+        barcodes: barcodes,
+        description: description,
+        locationUID: locationUID);
+
     // Item();
   }
 
@@ -111,6 +159,7 @@ class ItemController {
   Future<String?> _getItemName(context) async {
     TextEditingController nameController = TextEditingController();
     return showDialog(
+        useRootNavigator: false,
         context: context,
         builder: (BuildContext ctx) {
           return AlertDialog(

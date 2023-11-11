@@ -39,6 +39,20 @@ class _ItemListViewState extends State<ItemListView> {
     scaffold = Scaffold(
         appBar: AppBar(
           title: Text('Item List View'),
+          bottom: PreferredSize(
+            preferredSize: Size(MediaQuery.of(context).size.width, 40),
+            child: OverflowBar(
+              alignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  child: Text('Add New Item'),
+                  onPressed: () {
+                    setState(() {});
+                  },
+                ),
+              ],
+            ),
+          ),
         ),
         body: Center(
             child: Flex(direction: Axis.vertical, children: [

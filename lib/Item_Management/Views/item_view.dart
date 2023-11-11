@@ -69,8 +69,13 @@ class _ItemViewState extends State<ItemView> {
                           widget.item.locationUID = int.parse(
                               _defLocationController
                                   .text); //FIXME: validate against known locations
-                          widget.itemController
-                              .setItemInfo(widget.item); //save changes
+                          widget.itemController.setItemInfo(
+                              uid: widget.item.uid,
+                              name: widget.item.name,
+                              description: widget.item.description,
+                              locationUID:
+                                  widget.item.locationUID); //save changes
+                          //FIXME: barcode handling in save
                         });
                       },
                     ),
@@ -92,23 +97,20 @@ class _ItemViewState extends State<ItemView> {
                       maxLines: null,
                     ),
                     Text('Location - Quantities'),
-                    SizedBox(
-                      //FIXME: Add default location if not in map, and respect it as top list item
-                      height: 200,
-                      child: ListView.builder(
-                        itemCount: widget.locationQuantities.length,
-                        itemBuilder: (context, index) {
-                          final location =
-                              widget.locationQuantities.entries.toList()[index];
+                    ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: widget.locationQuantities.length,
+                      itemBuilder: (context, index) {
+                        final location =
+                            widget.locationQuantities.entries.toList()[index];
 
-                          return ListTile(
-                            title: Text(
-                                'Location: ${location.key.toString()}'), //FIXME: get location name
-                            subtitle:
-                                Text('Quantity: ${location.value.toString()}'),
-                          );
-                        },
-                      ),
+                        return ListTile(
+                          title: Text(
+                              'Location: ${location.key.toString()}'), //FIXME: get location name
+                          subtitle:
+                              Text('Quantity: ${location.value.toString()}'),
+                        );
+                      },
                     ),
                     Text('Barcodes'),
                     SizedBox(
@@ -125,8 +127,10 @@ class _ItemViewState extends State<ItemView> {
                                   icon: Icon(Icons.remove_circle),
                                   onPressed: () {
                                     widget.item.barcodes.removeAt(index);
-                                    widget.itemController
-                                        .setItemInfo(widget.item);
+                                    widget.itemController.setItemInfo(
+                                        uid: widget.item.uid,
+                                        barcodes: widget.item.barcodes);
+                                    setState(() {}); //FIXME: hack for refresh
                                   }),
                               // subtitle: barcode.buildSubtitle(context),
                             );
@@ -164,17 +168,17 @@ class _ItemViewState extends State<ItemView> {
             appBar: AppBar(
               title: Text('Item View: ${widget.item.name}'),
             ),
-            body: Center(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Text('Name: ${item.name}'),
-                    Text('Description: ${widget.item.description}'),
-                    Text('Location - Quantities'),
-                    SizedBox(
-                      height: 200,
-                      child: ListView.builder(
+            body: SingleChildScrollView(
+              child: Center(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Text('Name: ${item.name}'),
+                      Text('Description: ${widget.item.description}'),
+                      Text('Location - Quantities'),
+                      ListView.builder(
+                        shrinkWrap: true,
                         itemCount: widget.locationQuantities.length + 1,
                         itemBuilder: (context, index) {
                           if (index < widget.locationQuantities.length) {
@@ -195,7 +199,11 @@ class _ItemViewState extends State<ItemView> {
                                                 as int) +
                                             1;
                                     widget.itemController
-                                        .setItemInfo(widget.item);
+                                        .updateItemLocationQuantities(
+                                            widget.item.uid,
+                                            widget.locationQuantities);
+                                    setState(
+                                        () {}); //FIXME: hack for updating UI
                                   }
                                 },
                               ),
@@ -215,7 +223,11 @@ class _ItemViewState extends State<ItemView> {
                                                 as int) -
                                             1;
                                     widget.itemController
-                                        .setItemInfo(widget.item);
+                                        .updateItemLocationQuantities(
+                                            widget.item.uid,
+                                            widget.locationQuantities);
+                                    setState(
+                                        () {}); //FIXME: hack for updating UI
                                   }
                                 },
                               ),
@@ -233,47 +245,48 @@ class _ItemViewState extends State<ItemView> {
                           }
                         },
                       ),
-                    ),
-                    Text('Barcodes'),
-                    SizedBox(
-                      height: 200,
-                      child: ListView.builder(
-                        itemCount: widget.item.barcodes.length,
-                        itemBuilder: (context, index) {
-                          final barcode = widget.item.barcodes[index];
 
-                          return ListTile(
-                            title: Text(barcode),
-                            // subtitle: barcode.buildSubtitle(context),
-                          );
+                      Text('Barcodes'),
+                      SizedBox(
+                        height: 200,
+                        child: ListView.builder(
+                          itemCount: widget.item.barcodes.length,
+                          itemBuilder: (context, index) {
+                            final barcode = widget.item.barcodes[index];
+
+                            return ListTile(
+                              title: Text(barcode),
+                              // subtitle: barcode.buildSubtitle(context),
+                            );
+                          },
+                        ),
+                      ),
+
+                      Text('Default Location: ${widget.item.locationUID}'),
+                      ElevatedButton(
+                        child: Text('Check Out'),
+                        onPressed: () {
+                          // lending controller here
                         },
                       ),
-                    ),
-
-                    Text('Default Location: ${widget.item.locationUID}'),
-                    ElevatedButton(
-                      child: Text('Check Out'),
-                      onPressed: () {
-                        // lending controller here
-                      },
-                    ),
-                    ElevatedButton(
-                      child: Text('Return'),
-                      onPressed: () {
-                        // lending controller here
-                      },
-                    ),
-                    ElevatedButton(
-                      child: Text('Edit Item'),
-                      onPressed: () {
-                        setState(() => switchState = !switchState);
-                      },
-                    ),
-                    // Switch.adaptive(
-                    //     value: switchState,
-                    //     onChanged: (value) =>
-                    //         setState(() => switchState = value)),
-                  ],
+                      ElevatedButton(
+                        child: Text('Return'),
+                        onPressed: () {
+                          // lending controller here
+                        },
+                      ),
+                      ElevatedButton(
+                        child: Text('Edit Item'),
+                        onPressed: () {
+                          setState(() => switchState = !switchState);
+                        },
+                      ),
+                      // Switch.adaptive(
+                      //     value: switchState,
+                      //     onChanged: (value) =>
+                      //         setState(() => switchState = value)),
+                    ],
+                  ),
                 ),
               ),
             ),

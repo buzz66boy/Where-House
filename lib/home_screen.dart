@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   late ItemManager itemManager;
   late ItemController itemController;
-  final Item item = Item(
+  late Item item = Item(
       uid: 10,
       name: 'Copier Toner',
       description:
@@ -60,11 +60,23 @@ class MyHomePage extends StatefulWidget {
       locationUID: 0);
   MyHomePage({super.key, required this.title}) {
     itemManager = ItemManager();
-    itemManager.initializeDatabase().then((value) {
-      itemManager.addItem(item.uid, item.name, item.description, item.barcodes,
-          item.locationUID);
-      itemManager.updateItemCount(0, item.uid, 3);
-      itemManager.updateItemCount(1, item.uid, 2);
+    itemManager.initializeDatabase().then((value) async {
+      Item? tempitem = await itemManager.addItem(
+          item.name, item.description, item.barcodes, item.locationUID);
+      if (tempitem != null) {
+        item = tempitem as Item;
+        itemManager.updateItemCount(0, item.uid, 3);
+        itemManager.updateItemCount(1, item.uid, 2);
+        itemManager.updateItemCount(4, item.uid, 4);
+      }
+      // await itemManager.editItem(
+      //     uid: item.uid,
+      //     name: item.name,
+      //     description: item.description,
+      //     barcodes: item.barcodes,
+      //     locationUID: item.locationUID);
+
+      itemManager.queryItems('koala').then((value) => print(value.toString()));
     });
     itemController = ItemController(itemManager: itemManager);
   }
@@ -123,14 +135,16 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             ElevatedButton(
-                onPressed: () {
-                  widget.itemController.showItem(context, widget.item);
+                onPressed: () async {
+                  widget.itemController.showItem(
+                      context,
+                      (await widget.itemManager
+                          .queryItems(''))[0]); //FIXME: for testing
                 },
                 child: Text("Scan")),
             ElevatedButton(
-                onPressed: () {
-                  widget.itemController
-                      .showItemList(context, [widget.item, widget.item], null);
+                onPressed: () async {
+                  widget.itemController.showItemList(context: context);
                 },
                 child: Text("Search Items")),
             ElevatedButton(onPressed: () {}, child: Text("Manage Locations")),
