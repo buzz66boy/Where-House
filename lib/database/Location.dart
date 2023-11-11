@@ -2,12 +2,12 @@ import 'package:sqflite/sqflite.dart';
 import 'dart:convert';
 
 class Location {
-  int uid;
+  late int uid;
   String name;
   int defaultLocation;
 
   Location({
-    required this.uid,
+    this.uid = -1,
     required this.name,
     required this.defaultLocation,
   });
@@ -31,7 +31,7 @@ class Location {
   Future<bool> setLocation() async {
     Database db = await openDatabase('WhereHouse.db');
     try {
-      await db.insert(
+      uid = await db.insert(
         'Location',
         toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
@@ -40,9 +40,9 @@ class Location {
       return true;
 
     } catch (e) {
-        print(e);
-        await db.close();
-        return false;
+      print(e);
+      await db.close();
+      return false;
     }
   }
 
@@ -55,11 +55,19 @@ class Location {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'uid': uid,
-      'name': name,
-      'defaultLocation': defaultLocation,
-    };
+
+    if (uid > -1) {
+      return {
+        'uid': uid,
+        'name': name,
+        'defaultLocation': defaultLocation,
+      };
+    } else {
+      return {
+        'name': name,
+        'defaultLocation': defaultLocation,
+      };
+    }
   }
 
   @override

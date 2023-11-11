@@ -119,7 +119,7 @@ class ItemManager {
 
       return rowsDeleted > 0;
     } catch (e) {
-      print("Error Deleting " + e.toString());
+      print("Error Deleting $e");
       return false;
     }
   }
