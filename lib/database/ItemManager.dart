@@ -45,7 +45,7 @@ class ItemManager {
               'checkedOutItems TEXT'
               ')',
         );
-        await db.execute(
+        /*await db.execute(
           'CREATE TABLE IF NOT EXISTS Transaction('
               'transactionUid INTEGER PRIMARY KEY, '
               'userUid INTEGER, '
@@ -55,7 +55,7 @@ class ItemManager {
               'FOREIGN KEY (itemUid) REFERENCES Item(uid), '
               'FOREIGN KEY (locationUid) REFERENCES Location(uid)'
               ')',
-        );
+        );*/
         await db.execute(
           'CREATE TABLE IF NOT EXISTS LocationItemCount('
               'locationUid INTEGER, '
@@ -71,7 +71,7 @@ class ItemManager {
     );
   }
 
-  Future<bool> addItem(
+  Future<Item?> addItem(
       String name,
       String description,
       List<String> barcodes,
@@ -90,12 +90,16 @@ class ItemManager {
       bool success = await newItem.setItem();
       if (success) {
         await updateItemCount(locationUID, newItem.uid, 1);
+
+        Item addedItem = await Item.getItem(newItem.uid);
+
+        return addedItem;
       }
 
-      return success;
+      return null;
     } catch (e) {
       print('Error adding item: $e');
-      return false;
+      return null;
     }
   }
 
