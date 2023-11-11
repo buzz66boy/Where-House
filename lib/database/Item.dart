@@ -3,14 +3,14 @@ import 'dart:async';
 import 'dart:convert';
 
 class Item {
-  int uid;
+  late int uid;
   String name;
   String description;
   List<String> barcodes;
   int locationUID;
 
   Item({
-    required this.uid,
+    this.uid = 0,
     required this.name,
     required this.description,
     required this.barcodes,
@@ -19,7 +19,7 @@ class Item {
 
   static Future<Item> getItem(int uid) async {
     Database db = await openDatabase('WhereHouse.db');
-    List<Map> results = await db.query('Item', where: 'UID = ?', whereArgs: [uid]);
+    List<Map> results = await db.query('Item', where: 'uid = ?', whereArgs: [uid]);
     await db.close();
 
     if (results.isNotEmpty) {

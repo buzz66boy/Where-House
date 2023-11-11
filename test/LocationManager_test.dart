@@ -15,12 +15,10 @@ Future<void> main() async {
   databaseFactory = databaseFactoryFfi;
 
   late LocationManager locationManager;
-
   locationManager = LocationManager();
-
   await locationManager.initializeDatabase();
-
-
+  final db = locationManager.database;
+  db.delete("Location");
 
   test('Add Duplicate Location', () async {
     // Arrange

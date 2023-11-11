@@ -23,7 +23,7 @@ class ItemManager {
 
         await db.execute(
           'CREATE TABLE IF NOT EXISTS Item('
-              'uid INTEGER PRIMARY KEY, '
+              'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
               'name TEXT, '
               'description TEXT, '
               'barcodes TEXT, '
@@ -72,7 +72,6 @@ class ItemManager {
   }
 
   Future<bool> addItem(
-      int uid,
       String name,
       String description,
       List<String> barcodes,
@@ -80,19 +79,8 @@ class ItemManager {
       ) async {
     try {
       database = await openDatabase('WhereHouse.db');
-      final result = await database.query(
-        'Item',
-        where: 'uid = ?',
-        whereArgs: [uid],
-      );
-
-      if (result.isNotEmpty) {
-
-        return false;
-      }
 
       Item newItem = Item(
-        uid: uid,
         name: name,
         description: description,
         barcodes: barcodes,
@@ -101,7 +89,7 @@ class ItemManager {
 
       bool success = await newItem.setItem();
       if (success) {
-        await updateItemCount(locationUID, uid, 1);
+        await updateItemCount(locationUID, newItem.uid, 1);
       }
 
       return success;
@@ -293,7 +281,7 @@ class ItemManager {
 
       for (Item item in items) {
 
-        await addItem(item.uid, item.name, item.description, item.barcodes, item.locationUID);
+        await addItem( item.name, item.description, item.barcodes, item.locationUID);
       }
 
       return true;
