@@ -93,8 +93,7 @@ class _BackgroundVideoState extends State<BackgroundVideo> {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     onPressed: () {
-                      _controller.dispose();
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (context) => MyApp()),
                       );

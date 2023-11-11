@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
 import 'Item.dart';
-
 
 class ItemManager {
   late Database database;
@@ -20,51 +20,50 @@ class ItemManager {
     database = await openDatabase(
       path,
       onCreate: (db, version) async {
-
         await db.execute(
           'CREATE TABLE IF NOT EXISTS Item('
-              'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
-              'name TEXT, '
-              'description TEXT, '
-              'barcodes TEXT, '
-              'locationUID INTEGER, '
-              'FOREIGN KEY (locationUID) REFERENCES Location(uid)'
-              ')',
+          'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
+          'name TEXT, '
+          'description TEXT, '
+          'barcodes TEXT, '
+          'locationUID INTEGER, '
+          'FOREIGN KEY (locationUID) REFERENCES Location(uid)'
+          ')',
         );
         await db.execute(
           'CREATE TABLE IF NOT EXISTS Location('
-              'uid INTEGER PRIMARY KEY, '
-              'name TEXT, '
-              'defaultLocation INTEGER'
-              ')',
+          'uid INTEGER PRIMARY KEY, '
+          'name TEXT, '
+          'defaultLocation INTEGER'
+          ')',
         );
         await db.execute(
           'CREATE TABLE IF NOT EXISTS User('
-              'uid INTEGER PRIMARY KEY, '
-              'name TEXT, '
-              'checkedOutItems TEXT'
-              ')',
+          'uid INTEGER PRIMARY KEY, '
+          'name TEXT, '
+          'checkedOutItems TEXT'
+          ')',
         );
-        /*await db.execute(
+        await db.execute(
           'CREATE TABLE IF NOT EXISTS Transaction('
-              'transactionUid INTEGER PRIMARY KEY, '
-              'userUid INTEGER, '
-              'itemUid INTEGER, '
-              'locationUid INTEGER, '
-              'FOREIGN KEY (userUid) REFERENCES User(uid), '
-              'FOREIGN KEY (itemUid) REFERENCES Item(uid), '
-              'FOREIGN KEY (locationUid) REFERENCES Location(uid)'
-              ')',
-        );*/
+          'transactionUid INTEGER PRIMARY KEY, '
+          'userUid INTEGER, '
+          'itemUid INTEGER, '
+          'locationUid INTEGER, '
+          'FOREIGN KEY (userUid) REFERENCES User(uid), '
+          'FOREIGN KEY (itemUid) REFERENCES Item(uid), '
+          'FOREIGN KEY (locationUid) REFERENCES Location(uid)'
+          ')',
+        );
         await db.execute(
           'CREATE TABLE IF NOT EXISTS LocationItemCount('
-              'locationUid INTEGER, '
-              'itemUid INTEGER, '
-              'itemCount INTEGER, '
-              'PRIMARY KEY (locationUid, itemUid), '
-              'FOREIGN KEY (locationUid) REFERENCES Location(uid), '
-              'FOREIGN KEY (itemUid) REFERENCES Item(uid)'
-              ')',
+          'locationUid INTEGER, '
+          'itemUid INTEGER, '
+          'itemCount INTEGER, '
+          'PRIMARY KEY (locationUid, itemUid), '
+          'FOREIGN KEY (locationUid) REFERENCES Location(uid), '
+          'FOREIGN KEY (itemUid) REFERENCES Item(uid)'
+          ')',
         );
       },
       version: 1,
@@ -72,11 +71,11 @@ class ItemManager {
   }
 
   Future<Item?> addItem(
-      String name,
-      String description,
-      List<String> barcodes,
-      int locationUID,
-      ) async {
+    String name,
+    String description,
+    List<String> barcodes,
+    int locationUID,
+  ) async {
     try {
       database = await openDatabase('WhereHouse.db');
 
@@ -89,13 +88,15 @@ class ItemManager {
 
       bool success = await newItem.setItem();
       if (success) {
+        print('made it here');
         await updateItemCount(locationUID, newItem.uid, 1);
-
+        print(newItem.uid);
         Item addedItem = await Item.getItem(newItem.uid);
 
         return addedItem;
       }
 
+      print('END of function');
       return null;
     } catch (e) {
       print('Error adding item: $e');
@@ -103,21 +104,22 @@ class ItemManager {
     }
   }
 
-
   Future<bool> removeItem(int uid) async {
     try {
-      database = await openDatabase('WhereHouse.db');
       Item itemToRemove = await Item.getItem(uid);
+      database = await openDatabase('WhereHouse.db');
 
-      int rowsDeleted = await database.delete('Item', where: 'UID = ?', whereArgs: [uid]);
+      int rowsDeleted =
+          await database.delete('Item', where: 'uid = ?', whereArgs: [uid]);
 
       if (rowsDeleted > 0) {
-        await updateItemCount(itemToRemove.locationUID, uid, -1);
+        // await updateItemCount(itemToRemove.locationUID, uid, -1);
+        //FIXME: delete
       }
 
       return rowsDeleted > 0;
     } catch (e) {
-      print(e);
+      print("Error Deleting " + e.toString());
       return false;
     }
   }
@@ -129,11 +131,10 @@ class ItemManager {
     String? description,
     int? locationUID,
   }) async {
-    database = await openDatabase('WhereHouse.db');
     Item existingItem = await Item.getItem(uid);
+    database = await openDatabase('WhereHouse.db');
 
     if (existingItem.uid == uid) {
-
       if (name != null) existingItem.name = name;
       if (barcodes != null) existingItem.barcodes = barcodes;
 
@@ -142,8 +143,7 @@ class ItemManager {
       if (locationUID != null) existingItem.locationUID = locationUID;
 
       try {
-        await existingItem
-            .setItem();
+        await existingItem.setItem();
         return existingItem;
       } catch (e) {
         print(e);
@@ -154,8 +154,8 @@ class ItemManager {
     }
   }
 
-
-  Future<bool> updateItemCount(int locationUid, int itemUid, int itemCount) async {
+  Future<bool> updateItemCount(
+      int locationUid, int itemUid, int itemCount) async {
     try {
       database = await openDatabase('WhereHouse.db');
       // Check if the key pair already exists
@@ -167,7 +167,6 @@ class ItemManager {
       );
 
       if (result.isNotEmpty) {
-
         await database.update(
           'LocationItemCount',
           {'itemCount': itemCount},
@@ -175,7 +174,6 @@ class ItemManager {
           whereArgs: [locationUid, itemUid],
         );
       } else {
-
         await database.insert(
           'LocationItemCount',
           {
@@ -192,7 +190,6 @@ class ItemManager {
       return false;
     }
   }
-
 
   Future<List<Map<String, dynamic>>?> queryItemCount(
       {int? locationUid, int? itemUid}) async {
@@ -229,7 +226,6 @@ class ItemManager {
     }
   }
 
-
   Future<List<Item>> queryItems([String query = '']) async {
     try {
       database = await openDatabase('WhereHouse.db');
@@ -237,7 +233,8 @@ class ItemManager {
 
       if (query.isNotEmpty) {
         results = await database.query('Item',
-            where: 'name LIKE ? OR uid LIKE ? OR description LIKE ? OR barcodes LIKE ? OR locationUID LIKE ?',
+            where:
+                'name LIKE ? OR uid LIKE ? OR description LIKE ? OR barcodes LIKE ? OR locationUID LIKE ?',
             whereArgs: List.filled(5, '%$query%'));
       } else {
         results = await database.query('Item');
@@ -253,11 +250,10 @@ class ItemManager {
         );
       }).toList();
     } catch (e) {
-        print(e);
-        return [];
+      print(e);
+      return [];
     }
   }
-
 
   // Export items to a file
   Future<bool> exportItems(String outfileLocation) async {
@@ -270,8 +266,8 @@ class ItemManager {
       await File(outfileLocation).writeAsString(itemsJson);
       return true;
     } catch (e) {
-        print('Error exporting items: $e');
-        return false;
+      print('Error exporting items: $e');
+      return false;
     }
   }
 
@@ -280,25 +276,20 @@ class ItemManager {
     try {
       String fileContent = await File(infileLocation).readAsString();
 
-      List<Map<String, dynamic>> itemMaps = List<Map<String, dynamic>>.from(jsonDecode(fileContent));
-      List<Item> items = itemMaps.map((itemMap) => Item.fromMap(itemMap)).toList();
+      List<Map<String, dynamic>> itemMaps =
+          List<Map<String, dynamic>>.from(jsonDecode(fileContent));
+      List<Item> items =
+          itemMaps.map((itemMap) => Item.fromMap(itemMap)).toList();
 
       for (Item item in items) {
-
-        await addItem( item.name, item.description, item.barcodes, item.locationUID);
+        await addItem(
+            item.name, item.description, item.barcodes, item.locationUID);
       }
 
       return true;
     } catch (e) {
-        print('Error importing items: $e');
-        return false;
+      print('Error importing items: $e');
+      return false;
     }
   }
-
 }
-
-
-
-
-
-

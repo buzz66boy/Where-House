@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:wherehouse/Item_Management/Controllers/item_controller.dart';
 import 'package:wherehouse/database/Item.dart';
 import 'package:wherehouse/database/ItemManager.dart';
@@ -153,8 +154,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () {}, child: Text("Transaction History")),
             ElevatedButton(onPressed: () {}, child: Text("Settings")),
             ElevatedButton(
-                onPressed: () {
-                  widget.itemController.createNewItem(context, 1234);
+                onPressed: () async {
+                  widget.itemController.itemScanned(context, '5555');
+
                   // widget.itemController.getItemSelection(
                   //     context, [widget.item, widget.item]).then((item) {
                   //   if (item != null) {

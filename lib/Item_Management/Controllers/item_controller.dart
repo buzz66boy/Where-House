@@ -6,21 +6,52 @@ import 'package:wherehouse/database/ItemManager.dart';
 
 class ItemController {
   final ItemManager itemManager;
-  const ItemController({required this.itemManager});
+  // late LendingController lendingController;
+  ItemController({required this.itemManager});
 
   Future<Item?> getItemSelection(context, List<Item> ilist) async {
     final itemSelected = await Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) => ItemListView(
-                itemList: ilist, confirmSelect: true, itemController: this)));
+                  itemList: ilist,
+                  confirmSelect: true,
+                  itemController: this,
+                  barcodeScanned: '',
+                )));
     if (!context.mounted) return null;
     return itemSelected;
   }
 
-  void itemScanned(context, int barcode) {
+  void itemScanned(context, String barcode) async {
     //get items matching barcode
+    List<Item> itemList = await getItems(barcode: barcode);
+    showItemList(
+      context: context,
+      itemList: itemList,
+      barcodeScanned: barcode,
+    );
     //show items in itemList
+  }
+
+  void checkoutItem(int itemUid) async {
+    List<Item?> qRes = await getItems(uid: itemUid, looseMatching: false);
+    if (qRes != null && qRes.length > 0) {
+      // lendingController.checkOut(qRes[0]);
+    } else {
+      throw Exception(
+          "Item meant to be checked in not found via query: ${itemUid}");
+    }
+  }
+
+  void checkinItem(int itemUid) async {
+    List<Item?> qRes = await getItems(uid: itemUid, looseMatching: false);
+    if (qRes != null && qRes.length > 0) {
+      // lendingController.checkIn(qRes[1]);
+    } else {
+      throw Exception(
+          "Item meant to be checked in not found via query: ${itemUid}");
+    }
   }
 
   void showItem(context, Item it) async {
@@ -68,7 +99,8 @@ class ItemController {
   void showItemList(
       {required BuildContext context,
       List<Item>? itemList,
-      List<int>? itemUIDList}) async {
+      List<int>? itemUIDList,
+      String barcodeScanned = ''}) async {
     if (itemList == null && itemUIDList == null) {
       //get all items
       itemList = await itemManager.queryItems();
@@ -102,6 +134,7 @@ class ItemController {
                   itemList: itemList as List<Item>,
                   confirmSelect: false,
                   itemController: this,
+                  barcodeScanned: barcodeScanned,
                 )));
     if (itemSelected != null) {
       showItem(context, itemSelected);
@@ -113,47 +146,125 @@ class ItemController {
     String? name,
     List<String>? barcodes,
     String? description,
+    Map<int, int>? locationQuantityMap,
     int? locationUID,
+    bool delete = false,
   }) async {
     // itemManager.editItem(uid: uid)
-    debugPrint('Updating item');
-    return await itemManager.editItem(
-        uid: uid,
-        name: name,
-        barcodes: barcodes,
-        description: description,
-        locationUID: locationUID);
-
-    // Item();
+    // debugPrint('Updating item');
+    if (!delete) {
+      Item? retItem;
+      if (name != null ||
+          barcodes != null ||
+          description != null ||
+          locationUID != null) {
+        retItem = await itemManager.editItem(
+            uid: uid,
+            name: name,
+            barcodes: barcodes,
+            description: description,
+            locationUID: locationUID);
+      } else {
+        retItem = (await getItems(uid: uid))[0]; //FIXME: should check if exists
+      }
+      if (locationQuantityMap != null) {
+        updateItemLocationQuantities(uid, locationQuantityMap);
+      }
+      return retItem;
+      // Item();
+    } else {
+      bool delSuccess = await itemManager.removeItem(uid);
+      return null;
+    }
   }
 
-  List<Item> getItems(int? uid, int? barcode, String? name, String? location,
-      String? user, String? description) {
+  Future<List<Item>> getItems(
+      {int? uid,
+      String? barcode,
+      String? name,
+      String? location,
+      String? user,
+      String? description,
+      bool looseMatching = false}) async {
     List<Item> itemList = [];
     if (uid != null) {
+      List<Item> queryRes = await itemManager.queryItems(uid.toString());
+
+      for (var i = 0; i < queryRes.length; i++) {
+        if (!looseMatching && queryRes[i].uid == uid) {
+          itemList.add(queryRes[i]);
+          break;
+        } else if (looseMatching &&
+            queryRes[i].uid.toString().contains(uid.toString())) {
+          itemList.add(queryRes[i]);
+        }
+      }
     } else if (barcode != null) {
+      List<Item> queryRes = await itemManager.queryItems(barcode.toString());
+
+      for (var i = 0; i < queryRes.length; i++) {
+        if (queryRes[i].barcodes.contains(barcode)) {
+          itemList.add(queryRes[i]);
+        } //FIXME: implement loose matching
+      }
     } else if (name != null) {
+      List<Item> queryRes = await itemManager.queryItems(name);
+
+      for (var i = 0; i < queryRes.length; i++) {
+        if (!looseMatching &&
+            queryRes[i].name.toLowerCase() == name.toLowerCase()) {
+          itemList.add(queryRes[i]);
+        } else if (looseMatching &&
+            queryRes[i].name.toLowerCase().contains(name.toLowerCase())) {
+          itemList.add(queryRes[i]);
+        }
+      }
     } else if (location != null) {
-      //handle searching locations
+      //FIXME: handle searching locations
     } else if (user != null) {
-      //handle searching users with item
-    } else if (description != null) {}
+      //FIXME: handle searching users with item
+    } else if (description != null) {
+      List<Item> queryRes = await itemManager.queryItems(description);
+
+      for (var i = 0; i < queryRes.length; i++) {
+        if (!looseMatching &&
+            queryRes[i].description.toLowerCase() ==
+                description.toLowerCase()) {
+          itemList.add(queryRes[i]);
+        } else if (looseMatching &&
+            queryRes[i]
+                .description
+                .toLowerCase()
+                .contains(description.toLowerCase())) {
+          itemList.add(queryRes[i]);
+        }
+      }
+    }
     return itemList;
   }
 
-  Future<Item?> createNewItem(context, int barcode) async {
+  Future<Item?> createNewItem(context, String barcode) async {
     //prompt for item name
     String? text = await _getItemName(context);
 
     // _getItemName(context, nameController)
     //     .then((value) => {debugPrint(nameController.text)});
     if (text != null) {
-      debugPrint(text);
-    }
-    //create item via ItemManager
+      // debugPrint(text);
 
-    //go to item view in edit mode
-    // return null;
+      //create item via ItemManager
+      List<String> barcodes = [];
+      if (barcode.isNotEmpty) {
+        // debugPrint('Barcode found ' + barcode);
+        barcodes.add(barcode);
+      }
+      Item? newItem = await itemManager.addItem(text, '', barcodes,
+          0); //FIXME: avoid hardcoding 0 as default location
+      //go to item view in edit mode
+
+      return newItem;
+    }
+    return null;
   }
 
   Future<String?> _getItemName(context) async {
