@@ -10,7 +10,7 @@ class ItemManager {
   late Database database;
 
   ItemManager() {
-    initializeDatabase();
+    // initializeDatabase();
   }
 
   Future<void> initializeDatabase() async {

@@ -55,9 +55,6 @@ class ItemController {
   }
 
   void showItem(context, Item it) async {
-    List<Map<String, dynamic>>? quant =
-        await itemManager.queryItemCount(itemUid: it.uid);
-
     Map<int, int> locQuant = await getItemLocationQuantities(item: it);
 
     await Navigator.push(
@@ -277,7 +274,9 @@ class ItemController {
       Item? newItem = await itemManager.addItem(text, '', barcodes,
           0); //FIXME: avoid hardcoding 0 as default location
       //go to item view in edit mode
-
+      if (newItem != null) {
+        showItem(context, newItem);
+      }
       return newItem;
     }
     return null;
