@@ -265,7 +265,7 @@ class _ItemViewState extends State<ItemView> {
                             //last entry
                             return ElevatedButton(
                                 onPressed: () =>
-                                    {}, //FIXME: Add location controller call here
+                                    {}, //FIXME: Add item controller call to loc controller here (get_location_selection)
                                 child: Text("Add to other Location"));
                           }
                         },
