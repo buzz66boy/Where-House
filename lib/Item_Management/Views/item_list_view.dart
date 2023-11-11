@@ -6,13 +6,13 @@ class ItemListView extends StatefulWidget {
   final List<Item> itemList;
   final bool confirmSelect;
   final ItemController itemController;
-
-  const ItemListView({
-    super.key,
-    required this.itemList,
-    required this.confirmSelect,
-    required this.itemController,
-  });
+  final String barcodeScanned;
+  const ItemListView(
+      {super.key,
+      required this.itemList,
+      required this.confirmSelect,
+      required this.itemController,
+      this.barcodeScanned = ''});
 
   @override
   State<StatefulWidget> createState() => _ItemListViewState();
@@ -46,7 +46,9 @@ class _ItemListViewState extends State<ItemListView> {
               children: [
                 ElevatedButton(
                   child: Text('Add New Item'),
-                  onPressed: () {
+                  onPressed: () async {
+                    await widget.itemController
+                        .createNewItem(context, widget.barcodeScanned);
                     setState(() {});
                   },
                 ),
@@ -118,34 +120,3 @@ class _ItemListViewState extends State<ItemListView> {
     }
   }
 }
-
-//  @override
-//   Widget build(BuildContext context) {
-//     Scaffold scaffold;
-//     scaffold = Scaffold(
-//         appBar: AppBar(
-//           title: Text('Item List View'),
-//         ),
-//         body: Center(
-//             child:
-//                 Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-//           TextField(
-//               controller: _queryController,
-//               decoration: InputDecoration(hintText: 'Item Search')),
-//           // SingleChildScrollView(
-//           ListView.builder(
-//             scrollDirection: Axis.vertical,
-//             itemCount: widget.itemList.length,
-//             shrinkWrap: true,
-//             itemBuilder: (context, index) {
-//               return ListTile(
-//                 title: Text(widget.itemList[index].name),
-//                 subtitle: Text(widget.itemList[index].description),
-//               );
-//             },
-//           ),
-//           // ),
-//         ])));
-
-//     return scaffold;
-//   }

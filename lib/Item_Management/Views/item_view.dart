@@ -151,7 +151,10 @@ class _ItemViewState extends State<ItemView> {
                       ], // Only numbers can be entered
                     ),
                     ElevatedButton(
-                      onPressed: () => {},
+                      onPressed: () => {
+                        //launch confirm dialog
+                        _deleteItemDialog(context)
+                      },
                       child: Text('DELETE ITEM'),
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all(Colors.red),
@@ -167,6 +170,28 @@ class _ItemViewState extends State<ItemView> {
         : Scaffold(
             appBar: AppBar(
               title: Text('Item View: ${widget.item.name}'),
+              bottom: PreferredSize(
+                preferredSize: Size(MediaQuery.of(context).size.width, 40),
+                child: OverflowBar(
+                  alignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      child: Text('Check Out'),
+                      onPressed: () {
+                        // lending controller here
+                        widget.itemController.checkoutItem(widget.item.uid);
+                      },
+                    ),
+                    ElevatedButton(
+                      child: Text('Return'),
+                      onPressed: () {
+                        // lending controller here
+                        widget.itemController.checkinItem(widget.item.uid);
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
             body: SingleChildScrollView(
               child: Center(
@@ -263,18 +288,7 @@ class _ItemViewState extends State<ItemView> {
                       ),
 
                       Text('Default Location: ${widget.item.locationUID}'),
-                      ElevatedButton(
-                        child: Text('Check Out'),
-                        onPressed: () {
-                          // lending controller here
-                        },
-                      ),
-                      ElevatedButton(
-                        child: Text('Return'),
-                        onPressed: () {
-                          // lending controller here
-                        },
-                      ),
+
                       ElevatedButton(
                         child: Text('Edit Item'),
                         onPressed: () {
@@ -292,5 +306,34 @@ class _ItemViewState extends State<ItemView> {
             ),
           );
     return scaffold;
+  }
+
+  void _deleteItemDialog(context) {
+    showDialog(
+        useRootNavigator: false,
+        context: context,
+        builder: (BuildContext ctx) {
+          return AlertDialog(
+            title: Text('Delete Item?'),
+            content: Text(widget.item.name),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  await widget.itemController
+                      .setItemInfo(uid: widget.item.uid, delete: true);
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                },
+                child: Text('Delete'),
+              ),
+            ],
+          );
+        });
   }
 }
