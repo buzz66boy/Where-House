@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:wherehouse/Item_Management/Controllers/item_controller.dart';
 import 'package:wherehouse/database/Item.dart';
 
 class ItemListView extends StatefulWidget {
   final List<Item> itemList;
   final bool confirmSelect;
+  final ItemController itemController;
 
-  const ItemListView(
-      {super.key, required this.itemList, required this.confirmSelect});
+  const ItemListView({
+    super.key,
+    required this.itemList,
+    required this.confirmSelect,
+    required this.itemController,
+  });
 
   @override
   State<StatefulWidget> createState() => _ItemListViewState();
@@ -33,6 +39,20 @@ class _ItemListViewState extends State<ItemListView> {
     scaffold = Scaffold(
         appBar: AppBar(
           title: Text('Item List View'),
+          bottom: PreferredSize(
+            preferredSize: Size(MediaQuery.of(context).size.width, 40),
+            child: OverflowBar(
+              alignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  child: Text('Add New Item'),
+                  onPressed: () {
+                    setState(() {});
+                  },
+                ),
+              ],
+            ),
+          ),
         ),
         body: Center(
             child: Flex(direction: Axis.vertical, children: [
@@ -49,7 +69,10 @@ class _ItemListViewState extends State<ItemListView> {
               itemBuilder: (context, index) {
                 return GestureDetector(
                     onTap: () => _selectItem(
-                        context, index, widget.itemList[index].name),
+                        context,
+                        index,
+                        widget.itemList[index]
+                            .name), //FIXME: rebuild when refreshing screen
                     child: ListTile(
                       title: Text(widget.itemList[index].name),
                       subtitle: Text(widget.itemList[index].description),
@@ -81,6 +104,7 @@ class _ItemListViewState extends State<ItemListView> {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
+                    Navigator.of(context).pop(widget.itemList[index]);
                   },
                   child: Text('Yes'),
                 ),
@@ -88,7 +112,10 @@ class _ItemListViewState extends State<ItemListView> {
             );
           });
       debugPrint('${index}');
-    } else {}
+    } else {
+      // Navigator.of(context).pop(widget.itemList[index]);
+      widget.itemController.showItem(context, widget.itemList[index]);
+    }
   }
 }
 
