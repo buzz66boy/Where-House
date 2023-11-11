@@ -21,41 +21,42 @@ class LocationManager {
     database = await openDatabase(
       path,
       onCreate: (db, version) async {
+
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS Item('
+              'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
+              'name TEXT, '
+              'description TEXT, '
+              'barcodes TEXT, '
+              'locationUID INTEGER, '
+              'FOREIGN KEY (locationUID) REFERENCES Location(uid)'
+              ')',
+        );
         await db.execute(
           'CREATE TABLE IF NOT EXISTS Location('
-              'uid INTEGER PRIMARY KEY, '
+              'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
               'name TEXT, '
               'defaultLocation INTEGER'
               ')',
         );
         await db.execute(
-          'CREATE TABLE IF NOT EXISTS Item('
-              'uid INTEGER PRIMARY KEY, '
-              'name TEXT, '
-              'description TEXT, '
-              'barcodes TEXT, '
-              'locationUID TEXT, '
-              ')',
-        );
-        await db.execute(
           'CREATE TABLE IF NOT EXISTS User('
-              'uid INTEGER PRIMARY KEY, '
+              'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
               'name TEXT, '
               'checkedOutItems TEXT'
               ')',
         );
-        await db.execute(
+        /*await db.execute(
           'CREATE TABLE IF NOT EXISTS Transaction('
-              'transactionUid INTEGER PRIMARY KEY, '
+              'transactionUid INTEGER PRIMARY KEY AUTOINCREMENT, '
               'userUid INTEGER, '
               'itemUid INTEGER, '
               'locationUid INTEGER, '
-              'timestamp INTEGER, '
               'FOREIGN KEY (userUid) REFERENCES User(uid), '
               'FOREIGN KEY (itemUid) REFERENCES Item(uid), '
               'FOREIGN KEY (locationUid) REFERENCES Location(uid)'
               ')',
-        );
+        );*/
         await db.execute(
           'CREATE TABLE IF NOT EXISTS LocationItemCount('
               'locationUid INTEGER, '
@@ -73,24 +74,14 @@ class LocationManager {
 
   // Add location method
   Future<bool> addLocation(
-      int uid,
+
       String name,
       int defaultLocation,
       ) async {
     try {
       database = await openDatabase('WhereHouse.db');
-      final result = await database.query(
-        'Location',
-        where: 'uid = ?',
-        whereArgs: [uid],
-      );
-
-      if (result.isNotEmpty) {
-        return false;
-      }
 
       Location newLocation = Location(
-        uid: uid,
         name: name,
         defaultLocation: defaultLocation,
       );
@@ -121,8 +112,8 @@ class LocationManager {
     String? name,
     int? defaultLocation,
   }) async {
-    database = await openDatabase('WhereHouse.db');
     Location existingLocation = await Location.getLocation(uid);
+    database = await openDatabase('WhereHouse.db');
 
     if (existingLocation.uid == uid) {
       if (name != null) existingLocation.name = name;
@@ -193,7 +184,7 @@ class LocationManager {
       List<Location> locations = locationMaps.map((locationMap) => Location.fromMap(locationMap)).toList();
 
       for (Location location in locations) {
-        await addLocation(location.uid, location.name, location.defaultLocation);
+        await addLocation(location.name, location.defaultLocation);
       }
 
       return true;

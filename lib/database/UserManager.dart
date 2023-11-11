@@ -4,8 +4,8 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
 import 'User.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-//import 'pathtoAccountingLog.dart'
+//import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
 
 class UserManager {
   late Database database;
@@ -22,32 +22,34 @@ class UserManager {
     database = await openDatabase(
       path,
       onCreate: (db, version) async {
+
         await db.execute(
-          'CREATE TABLE IF NOT EXISTS User('
-              'uid INTEGER PRIMARY KEY, '
+          'CREATE TABLE IF NOT EXISTS Item('
+              'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
               'name TEXT, '
-              'checkedOutItems TEXT'
+              'description TEXT, '
+              'barcodes TEXT, '
+              'locationUID INTEGER, '
+              'FOREIGN KEY (locationUID) REFERENCES Location(uid)'
               ')',
         );
         await db.execute(
           'CREATE TABLE IF NOT EXISTS Location('
-              'uid INTEGER PRIMARY KEY, '
+              'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
               'name TEXT, '
               'defaultLocation INTEGER'
               ')',
         );
         await db.execute(
-          'CREATE TABLE IF NOT EXISTS Item('
-              'uid INTEGER PRIMARY KEY, '
+          'CREATE TABLE IF NOT EXISTS User('
+              'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
               'name TEXT, '
-              'description TEXT, '
-              'barcodes TEXT, '
-              'locationUID INTEGER, '
+              'checkedOutItems TEXT'
               ')',
         );
-        await db.execute(
+        /*await db.execute(
           'CREATE TABLE IF NOT EXISTS Transaction('
-              'transactionUid INTEGER PRIMARY KEY, '
+              'transactionUid INTEGER PRIMARY KEY AUTOINCREMENT, '
               'userUid INTEGER, '
               'itemUid INTEGER, '
               'locationUid INTEGER, '
@@ -55,7 +57,7 @@ class UserManager {
               'FOREIGN KEY (itemUid) REFERENCES Item(uid), '
               'FOREIGN KEY (locationUid) REFERENCES Location(uid)'
               ')',
-        );
+        );*/
         await db.execute(
           'CREATE TABLE IF NOT EXISTS LocationItemCount('
               'locationUid INTEGER, '
@@ -73,24 +75,13 @@ class UserManager {
   }
 
   Future<bool> addUser(
-      int uid,
       String name,
-      List<int> checkedOutItems,
+      List<dynamic> checkedOutItems,
       ) async {
     try {
       database = await openDatabase('WhereHouse.db');
-      final result = await database.query(
-        'User',
-        where: 'uid = ?',
-        whereArgs: [uid],
-      );
-
-      if (result.isNotEmpty) {
-        return false;
-      }
 
       User newUser = User(
-        uid: uid,
         name: name,
         checkedOutItems: checkedOutItems,
       );
@@ -123,8 +114,8 @@ class UserManager {
     User? existingUser;
 
     try {
-      database = await openDatabase('WhereHouse.db');
       existingUser = await User.getUser(uid);
+      database = await openDatabase('WhereHouse.db');
 
       if (existingUser.uid == uid) {
         if (name != null) existingUser.name = name;
@@ -160,7 +151,7 @@ class UserManager {
         return User(
           uid: user['uid'],
           name: user['name'],
-          checkedOutItems: user['checkedOutItems'],
+          checkedOutItems: jsonDecode(user['checkedOutItems']),
         );
       }).toList();
     } catch (e) {
@@ -194,7 +185,7 @@ class UserManager {
       List<User> users = userMaps.map((userMap) => User.fromMap(userMap)).toList();
 
       for (User user in users) {
-        await addUser(user.uid, user.name, user.checkedOutItems);
+        await addUser(user.name, user.checkedOutItems);
       }
 
       return true;
