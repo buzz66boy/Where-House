@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wherehouse/Item_Management/Controllers/lending_controller.dart';
 import 'package:wherehouse/Item_Management/Views/item_list_view.dart';
 import 'package:wherehouse/Item_Management/Views/item_view.dart';
 import 'package:wherehouse/database/Item.dart';
@@ -6,8 +7,10 @@ import 'package:wherehouse/database/ItemManager.dart';
 
 class ItemController {
   final ItemManager itemManager;
-  // late LendingController lendingController;
-  ItemController({required this.itemManager});
+  late LendingController lendingController;
+  ItemController({required this.itemManager}) {
+    lendingController = LendingController(itemController: this);
+  }
 
   Future<Item?> getItemSelection(context, List<Item> ilist) async {
     final itemSelected = await Navigator.push(
@@ -34,20 +37,20 @@ class ItemController {
     //show items in itemList
   }
 
-  void checkoutItem(int itemUid) async {
+  void checkoutItem(context, int itemUid) async {
     List<Item?> qRes = await getItems(uid: itemUid, looseMatching: false);
     if (qRes != null && qRes.length > 0) {
-      // lendingController.checkOut(qRes[0]);
+      lendingController.checkOut(context, qRes[0]!);
     } else {
       throw Exception(
           "Item meant to be checked in not found via query: ${itemUid}");
     }
   }
 
-  void checkinItem(int itemUid) async {
+  void checkinItem(context, int itemUid) async {
     List<Item?> qRes = await getItems(uid: itemUid, looseMatching: false);
     if (qRes != null && qRes.length > 0) {
-      // lendingController.checkIn(qRes[0]);
+      lendingController.checkIn(context, qRes[0]!);
     } else {
       throw Exception(
           "Item meant to be checked in not found via query: ${itemUid}");
