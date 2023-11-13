@@ -45,7 +45,7 @@ class _UserListViewState extends State<UserListView> {
   }
 
   void _selectAddUser() {
-   
+
     final BuildContext scaffoldContext = context;
     addUserDialog(scaffoldContext);
   }
