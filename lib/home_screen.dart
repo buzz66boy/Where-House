@@ -100,6 +100,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  BarcodeScannerWidget scannerController = BarcodeScannerWidget();
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -139,7 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             ElevatedButton(
                 onPressed: () async {
-                  runApp(BarcodeScannerWidget());
+                  widget.scannerController.scanBarcode();
                 },
                 child: Text("Scan")),
             ElevatedButton(
