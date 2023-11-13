@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wherehouse/database/UserManager.dart';
-
 import '../database/User.dart';
 import 'UserController.dart';
 
@@ -10,7 +9,7 @@ class UserView extends StatelessWidget {
   @override
   @override
   Widget build(BuildContext context) {
-   
+
     final UserController userController;
 
     return Scaffold(
@@ -18,22 +17,21 @@ class UserView extends StatelessWidget {
         title: const Text('Manage User'),
         backgroundColor: Colors.cyan,
       ),
-      body: Center( // Center the user information
+      body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
+            const SizedBox(height: 20),
             const Text('User Details', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             Text('Name: ${user.name}'),
+            const Spacer(), /// This will push the button towards the bottom
             ElevatedButton(onPressed: () => _editUser(context), child: const Text("Edit User")),
           ],
         ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () => _editUser(context),
-      //   child: const Icon(Icons.edit),
-      // ),
     );
+
   }
   void _editUser(BuildContext context) async {
     UserManager userManager = UserManager();
