@@ -3,12 +3,12 @@ import 'package:sqflite/sqflite.dart';
 import 'dart:async';
 
 class User {
-  int uid;
+  late int uid;
   String name;
-  List<int> checkedOutItems;
+  List<dynamic> checkedOutItems;
 
   User({
-    required this.uid,
+    this.uid = -1,
     required this.name,
     required this.checkedOutItems,
   });
@@ -33,7 +33,7 @@ class User {
   Future<bool> setUser() async {
     Database db = await openDatabase('WhereHouse.db');
     try {
-      await db.insert(
+      uid = await db.insert(
         'User',
         toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
@@ -50,18 +50,25 @@ class User {
 
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
-      uid: map['uid'],
       name: map['name'],
       checkedOutItems: List<int>.from(jsonDecode(map['checkedOutItems'])),
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'uid': uid,
-      'name': name,
-      'checkedOutItems': jsonEncode(checkedOutItems),
-    };
+
+    if (uid > -1) {
+      return {
+        'uid': uid,
+        'name': name,
+        'checkedOutItems': jsonEncode(checkedOutItems),
+      };
+    } else {
+      return {
+        'name': name,
+        'checkedOutItems': jsonEncode(checkedOutItems),
+      };
+    }
   }
 
   @override
