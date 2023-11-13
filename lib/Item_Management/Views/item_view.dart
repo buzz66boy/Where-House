@@ -179,14 +179,16 @@ class _ItemViewState extends State<ItemView> {
                       child: Text('Check Out'),
                       onPressed: () {
                         // lending controller here
-                        widget.itemController.checkoutItem(widget.item.uid);
+                        widget.itemController
+                            .checkoutItem(context, widget.item.uid);
                       },
                     ),
                     ElevatedButton(
                       child: Text('Return'),
                       onPressed: () {
                         // lending controller here
-                        widget.itemController.checkinItem(widget.item.uid);
+                        widget.itemController
+                            .checkinItem(context, widget.item.uid);
                       },
                     ),
                   ],
