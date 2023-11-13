@@ -122,4 +122,4 @@ class _ScanPageState extends State<ScanPage> {
   }
 }
 
-void main() => runApp(MaterialApp(home: ScannerController()));
+//void main() => runApp(MaterialApp(home: ScannerController()));
