@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
-
 import 'package:wherehouse/Item_Management/Controllers/item_controller.dart';
 import 'package:wherehouse/Item_Management/Controllers/scanner_controller.dart';
 import 'package:wherehouse/database/Item.dart';
@@ -52,7 +51,7 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   late ItemManager itemManager;
   late ItemController itemController;
-  late ScannerController scannerController;
+  late BarcodeScannerWidget scannerController;
   late Item item = Item(
       uid: 10,
       name: 'Copier Toner',
@@ -82,7 +81,7 @@ class MyHomePage extends StatefulWidget {
       itemManager.queryItems('koala').then((value) => print(value.toString()));
     });
     itemController = ItemController(itemManager: itemManager);
-    scannerController = ScannerController(key: key);
+    scannerController = BarcodeScannerWidget();
   }
 
   // This widget is the home page of your application. It is stateful, meaning
@@ -101,6 +100,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  BarcodeScannerWidget scannerController = BarcodeScannerWidget();
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -140,10 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             ElevatedButton(
                 onPressed: () async {
-                  /* widget.itemController.showItem(
-                      context,
-                      (await widget.itemManager
-                          .queryItems(''))[0]); //FIXME: for testing*/
+                  widget.scannerController.scanBarcode();
                 },
                 child: Text("Scan")),
             ElevatedButton(
