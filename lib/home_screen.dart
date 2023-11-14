@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:wherehouse/Item_Management/Controllers/item_controller.dart';
@@ -11,8 +12,8 @@ class MyApp extends StatelessWidget {
   late ItemController itemController;
   late ScannerController scannerController;
   MyApp({super.key}) {
-    ItemManager itemManager = ItemManager();
-    ItemController itemController = ItemController(itemManager: itemManager);
+    // ItemManager itemManager = ItemManager();
+    // ItemController itemController = ItemController(itemManager: itemManager);
   }
   // This widget is the root of your application.
   @override
@@ -82,6 +83,7 @@ class MyHomePage extends StatefulWidget {
       itemManager.queryItems('koala').then((value) => print(value.toString()));
     });
     itemController = ItemController(itemManager: itemManager);
+    scannerController = ScannerController(itemController: itemController);
   }
 
   // This widget is the home page of your application. It is stateful, meaning
@@ -139,7 +141,10 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             ElevatedButton(
                 onPressed: () async {
-                  runApp(const ScannerController() as Widget);
+                  final result = await BarcodeScanner.scan();
+                  debugPrint(result.rawContent.toString());
+                  widget.itemController
+                      .itemScanned(context, result.rawContent.toString());
                 },
                 child: Text("Scan")),
             ElevatedButton(

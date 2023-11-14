@@ -44,17 +44,17 @@ class ItemManager {
           'checkedOutItems TEXT'
           ')',
         );
-        await db.execute(
-          'CREATE TABLE IF NOT EXISTS Transaction('
-          'transactionUid INTEGER PRIMARY KEY, '
-          'userUid INTEGER, '
-          'itemUid INTEGER, '
-          'locationUid INTEGER, '
-          'FOREIGN KEY (userUid) REFERENCES User(uid), '
-          'FOREIGN KEY (itemUid) REFERENCES Item(uid), '
-          'FOREIGN KEY (locationUid) REFERENCES Location(uid)'
-          ')',
-        );
+        // await db.execute(
+        //   'CREATE TABLE IF NOT EXISTS Transaction('
+        //   'transactionUid INTEGER PRIMARY KEY, '
+        //   'userUid INTEGER, '
+        //   'itemUid INTEGER, '
+        //   'locationUid INTEGER, '
+        //   'FOREIGN KEY (userUid) REFERENCES User(uid), '
+        //   'FOREIGN KEY (itemUid) REFERENCES Item(uid), '
+        //   'FOREIGN KEY (locationUid) REFERENCES Location(uid)'
+        //   ')',
+        // );
         await db.execute(
           'CREATE TABLE IF NOT EXISTS LocationItemCount('
           'locationUid INTEGER, '

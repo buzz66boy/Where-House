@@ -25,6 +25,7 @@ class _ItemListViewState extends State<ItemListView> {
   @override
   void initState() {
     super.initState();
+    _queryController.text = widget.barcodeScanned;
   }
 
   @override
