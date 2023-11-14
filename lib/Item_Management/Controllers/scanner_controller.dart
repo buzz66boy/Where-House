@@ -46,6 +46,7 @@ class _ScannerControllerState extends State<ScannerController> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
+          backgroundColor: const Color.fromARGB(255, 0, 0, 0),
           title: const Text('Barcode Scanner'),
           actions: [
             IconButton(
