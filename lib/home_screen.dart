@@ -9,6 +9,7 @@ import 'package:wherehouse/database/ItemManager.dart';
 class MyApp extends StatelessWidget {
   late ItemManager itemManager;
   late ItemController itemController;
+  late ScannerController scannerController;
   MyApp({super.key}) {
     ItemManager itemManager = ItemManager();
     ItemController itemController = ItemController(itemManager: itemManager);
@@ -51,7 +52,7 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   late ItemManager itemManager;
   late ItemController itemController;
-  late BarcodeScannerWidget scannerController;
+  late ScannerController scannerController;
   late Item item = Item(
       uid: 10,
       name: 'Copier Toner',
@@ -81,7 +82,6 @@ class MyHomePage extends StatefulWidget {
       itemManager.queryItems('koala').then((value) => print(value.toString()));
     });
     itemController = ItemController(itemManager: itemManager);
-    scannerController = BarcodeScannerWidget();
   }
 
   // This widget is the home page of your application. It is stateful, meaning
@@ -100,7 +100,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  BarcodeScannerWidget scannerController = BarcodeScannerWidget();
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -140,7 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             ElevatedButton(
                 onPressed: () async {
-                  widget.scannerController.scanBarcode();
+                  runApp(const ScannerController() as Widget);
                 },
                 child: Text("Scan")),
             ElevatedButton(
