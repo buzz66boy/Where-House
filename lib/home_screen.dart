@@ -83,7 +83,7 @@ class MyHomePage extends StatefulWidget {
       itemManager.queryItems('koala').then((value) => print(value.toString()));
     });
     itemController = ItemController(itemManager: itemManager);
-    scannerController = ScannerController(itemController: itemController);
+    scannerController = ScannerController();
   }
 
   // This widget is the home page of your application. It is stateful, meaning
