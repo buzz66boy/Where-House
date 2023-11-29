@@ -1,3 +1,4 @@
+import 'package:wherehouse/LocationController.dart';
 import 'package:wherehouse/database/Location.dart';
 import 'package:flutter/material.dart';
 
@@ -26,7 +27,10 @@ import 'package:flutter/material.dart';
 // The LocationView widget is a stateful widget because I want to update the UI dynamically.
 class LocationView extends StatefulWidget {
   final Location location;
-  const LocationView({Key? key, required this.location}) : super(key: key);
+  final LocationController locationController;
+  const LocationView(
+      {Key? key, required this.location, required this.locationController})
+      : super(key: key);
 
   @override
   _LocationViewState createState() => _LocationViewState();
@@ -57,9 +61,23 @@ class _LocationViewState extends State<LocationView> {
           //   child: Text('Show Location Info'),
           // ),
           // Here, I'm displaying the location's data on the screen.
+
           Text('Name: ${widget.location.name}'),
           Text('Unique ID: ${widget.location.uid}'),
           Text('Is Default? ${widget.location.defaultLocation}'),
+          ElevatedButton(
+              onPressed: () async {
+                String? newName =
+                    await _getNewLocName(context, widget.location.name);
+                if (newName != null && newName.isNotEmpty) {
+                  await widget.locationController
+                      .editLocation(uid: widget.location.uid, name: newName);
+                  widget.location.name = newName;
+                  setState(() {});
+                }
+              },
+              //FIXME: Add item controller call to loc controller here (get_location_selection)
+              child: Text("Edit Location Name")),
           // Text('Description: $description'),
           // Text('Barcodes: ${barcodes.join(', ')}'),
           // Text('Locations: ${locations.join(', ')}'),
@@ -67,8 +85,38 @@ class _LocationViewState extends State<LocationView> {
       ),
     );
   }
-}
 
+  Future<String?> _getNewLocName(BuildContext context, String oldName) async {
+    TextEditingController nameController = TextEditingController();
+    nameController.text = oldName;
+    return showDialog(
+        useRootNavigator: false,
+        context: context,
+        builder: (BuildContext ctx) {
+          return AlertDialog(
+            title: Text('Rename Location'),
+            content: TextField(
+              controller: nameController,
+              decoration: InputDecoration(hintText: 'Location Name'),
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(nameController.text);
+                },
+                child: Text('Save'),
+              ),
+            ],
+          );
+        });
+  }
+}
 // // The main function is the entry point for my Flutter app.
 // void main() {
 //   runApp(MaterialApp(home: LocationView()));

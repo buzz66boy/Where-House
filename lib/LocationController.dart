@@ -3,15 +3,16 @@ import 'package:wherehouse/database/Location.dart';
 import 'package:wherehouse/database/LocationManager.dart';
 import 'LocationView.dart'; // I'm importing the LocationView widget here.
 import 'LocationListView.dart'; // Here's where I import the LocationListView widget.
-import 'AddLocation.dart'; // This is for importing the AddLocation widget.
-import 'SetLocation.dart'; // And this is for importing the SetLocation widget.
 
-class ItemController {
+class LocationController {
   final LocationManager locationManager;
 
-  ItemController({required this.locationManager});
+  LocationController({required this.locationManager});
 
-  void showLocation({context, Location? location, int loc_uid = -1}) async {
+  void showLocation(
+      {required BuildContext context,
+      Location? location,
+      int loc_uid = -1}) async {
     if (location == null && loc_uid >= 0) {
       List<Location> locationList =
           await locationManager.queryLocations('$loc_uid');
@@ -29,8 +30,118 @@ class ItemController {
     await Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) =>
-                LocationView(location: location as Location)));
+            builder: (context) => LocationView(
+                locationController: this, location: location as Location)));
+  }
+
+  Future<Location?> createNewLocation(context) async {
+    String? text = await _getLocationName(context);
+
+    if (text != null) {
+      Location? newLoc = await locationManager.addLocation(text, -1);
+
+      if (newLoc != null) {
+        showLocation(context: context, location: newLoc);
+      }
+      return newLoc;
+    }
+    return null;
+  }
+
+  Future<String?> _getLocationName(context) async {
+    TextEditingController nameController = TextEditingController();
+    return showDialog(
+        useRootNavigator: false,
+        context: context,
+        builder: (BuildContext ctx) {
+          return AlertDialog(
+            title: Text('New Location Name'),
+            content: TextField(
+              controller: nameController,
+              decoration: InputDecoration(hintText: 'Location Name'),
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(nameController.text);
+                },
+                child: Text('Save'),
+              ),
+            ],
+          );
+        });
+  }
+
+  void showLocationList(
+      {required BuildContext context,
+      List<Location>? locationList,
+      List<int>? locUIDList}) async {
+    if (locationList == null) {
+      debugPrint("hereeeee");
+      //FIXME: handle locUIDList
+      locationList = await locationManager.queryLocations();
+
+      debugPrint(locationList.toString());
+      if (locationList.isEmpty) {
+        locationList = [];
+      }
+    }
+    final locationSelected = await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => LocationListView(
+                locationController: this,
+                locationList: locationList as List<Location>)));
+    if (locationSelected != null) {
+      showLocation(context: context, location: locationSelected);
+    }
+  }
+
+  Future<List<String>> getLocationNames(List<int> uid_list) async {
+    List<String> nameList = [];
+    for (int i = 0; i < uid_list.length; i++) {
+      String name = await getLocationName(uid_list[i]);
+      nameList.add(name);
+    }
+    return nameList;
+  }
+
+  Future<String> getLocationName(int uid) async {
+    List<Location> locList =
+        await locationManager.queryLocations(uid.toString());
+
+    for (int i = 0; i < locList.length; i++) {
+      if (locList[i].uid == uid) {
+        return locList[i].name;
+      }
+    }
+    return '';
+  }
+
+  Future<Location?> getLocationSelection(
+      {required BuildContext context, List<Location>? locList}) async {
+    if (locList == null) {
+      locList = await locationManager.queryLocations();
+    }
+    final locationSelected = await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => LocationListView(
+                locationController: this,
+                locationList: locList as List<Location>)));
+    return locationSelected;
+  }
+
+  Future<Location?> editLocation(
+      {required int uid, String? name, int? defLoc}) {
+    return locationManager.editLocation(
+        uid: uid, name: name, defaultLocation: defLoc);
   }
 }
 // Below is my Location class with properties for name, description, etc.

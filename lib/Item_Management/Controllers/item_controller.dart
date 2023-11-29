@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:wherehouse/Item_Management/Controllers/lending_controller.dart';
 import 'package:wherehouse/Item_Management/Views/item_list_view.dart';
 import 'package:wherehouse/Item_Management/Views/item_view.dart';
+import 'package:wherehouse/LocationController.dart';
 import 'package:wherehouse/database/Item.dart';
 import 'package:wherehouse/database/ItemManager.dart';
+import 'package:wherehouse/database/Location.dart';
 
 class ItemController {
   final ItemManager itemManager;
+  final LocationController locationController;
   late LendingController lendingController;
-  ItemController({required this.itemManager}) {
+
+  ItemController(
+      {required this.locationController, required this.itemManager}) {
     lendingController = LendingController(itemController: this);
   }
 
@@ -60,6 +65,15 @@ class ItemController {
   void showItem(context, Item it) async {
     Map<int, int> locQuant = await getItemLocationQuantities(item: it);
 
+    List<int> locIds = locQuant.keys.toList();
+    List<String> locNames = await getLocationNames(locIds);
+
+    Map<int, String> locNameMap = {};
+
+    for (int i = 0; i < locIds.length; i++) {
+      locNameMap[locIds[i]] = locNames[i];
+    }
+    debugPrint(locNames.toString());
     await Navigator.push(
         context,
         MaterialPageRoute(
@@ -67,7 +81,16 @@ class ItemController {
                   item: it,
                   itemController: this,
                   locationQuantities: locQuant,
+                  locationNames: locNameMap,
                 )));
+  }
+
+  Future<List<String>> getLocationNames(List<int> uidList) {
+    return locationController.getLocationNames(uidList);
+  }
+
+  Future<String> getLocationName(int uid) {
+    return locationController.getLocationName(uid);
   }
 
   Future<Map<int, int>> getItemLocationQuantities(
@@ -275,7 +298,7 @@ class ItemController {
         barcodes.add(barcode);
       }
       Item? newItem = await itemManager.addItem(text, '', barcodes,
-          0); //FIXME: avoid hardcoding 0 as default location
+          1); //FIXME: avoid hardcoding 0 as default location
       //go to item view in edit mode
       if (newItem != null) {
         showItem(context, newItem);
@@ -313,5 +336,9 @@ class ItemController {
             ],
           );
         });
+  }
+
+  Future<Location?> getLocationSelection(BuildContext context) {
+    return locationController.getLocationSelection(context: context);
   }
 }

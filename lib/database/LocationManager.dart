@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'Location.dart';
 //import 'pathtoAccountingLog.dart'
 
-
 class LocationManager {
   late Database database;
 
@@ -21,30 +20,29 @@ class LocationManager {
     database = await openDatabase(
       path,
       onCreate: (db, version) async {
-
         await db.execute(
           'CREATE TABLE IF NOT EXISTS Item('
-              'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
-              'name TEXT, '
-              'description TEXT, '
-              'barcodes TEXT, '
-              'locationUID INTEGER, '
-              'FOREIGN KEY (locationUID) REFERENCES Location(uid)'
-              ')',
+          'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
+          'name TEXT, '
+          'description TEXT, '
+          'barcodes TEXT, '
+          'locationUID INTEGER, '
+          'FOREIGN KEY (locationUID) REFERENCES Location(uid)'
+          ')',
         );
         await db.execute(
           'CREATE TABLE IF NOT EXISTS Location('
-              'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
-              'name TEXT, '
-              'defaultLocation INTEGER'
-              ')',
+          'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
+          'name TEXT, '
+          'defaultLocation INTEGER'
+          ')',
         );
         await db.execute(
           'CREATE TABLE IF NOT EXISTS User('
-              'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
-              'name TEXT, '
-              'checkedOutItems TEXT'
-              ')',
+          'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
+          'name TEXT, '
+          'checkedOutItems TEXT'
+          ')',
         );
         /*await db.execute(
           'CREATE TABLE IF NOT EXISTS Transaction('
@@ -59,13 +57,13 @@ class LocationManager {
         );*/
         await db.execute(
           'CREATE TABLE IF NOT EXISTS LocationItemCount('
-              'locationUid INTEGER, '
-              'itemUid INTEGER, '
-              'itemCount INTEGER, '
-              'PRIMARY KEY (locationUid, itemUid), '
-              'FOREIGN KEY (locationUid) REFERENCES Location(uid), '
-              'FOREIGN KEY (itemUid) REFERENCES Item(uid)'
-              ')',
+          'locationUid INTEGER, '
+          'itemUid INTEGER, '
+          'itemCount INTEGER, '
+          'PRIMARY KEY (locationUid, itemUid), '
+          'FOREIGN KEY (locationUid) REFERENCES Location(uid), '
+          'FOREIGN KEY (itemUid) REFERENCES Item(uid)'
+          ')',
         );
       },
       version: 1,
@@ -73,11 +71,10 @@ class LocationManager {
   }
 
   // Add location method
-  Future<bool> addLocation(
-
-      String name,
-      int defaultLocation,
-      ) async {
+  Future<Location?> addLocation(
+    String name,
+    int defaultLocation,
+  ) async {
     try {
       database = await openDatabase('WhereHouse.db');
 
@@ -87,10 +84,14 @@ class LocationManager {
       );
 
       bool success = await newLocation.setLocation();
-      return success;
+      if (success) {
+        Location addedLocation = await Location.getLocation(newLocation.uid);
+
+        return addedLocation;
+      }
     } catch (e) {
       print('Error adding location: $e');
-      return false;
+      return null;
     }
   }
 
@@ -98,7 +99,8 @@ class LocationManager {
   Future<bool> removeLocation(int uid) async {
     try {
       database = await openDatabase('WhereHouse.db');
-      int rowsDeleted = await database.delete('Location', where: 'UID = ?', whereArgs: [uid]);
+      int rowsDeleted =
+          await database.delete('Location', where: 'UID = ?', whereArgs: [uid]);
       return rowsDeleted > 0;
     } catch (e) {
       print(e);
@@ -117,7 +119,8 @@ class LocationManager {
 
     if (existingLocation.uid == uid) {
       if (name != null) existingLocation.name = name;
-      if (defaultLocation != null) existingLocation.defaultLocation = defaultLocation;
+      if (defaultLocation != null)
+        existingLocation.defaultLocation = defaultLocation;
 
       try {
         await existingLocation.setLocation();
@@ -158,14 +161,14 @@ class LocationManager {
     }
   }
 
-
   // Export locations to a file
   Future<bool> exportLocations(String outfileLocation) async {
     try {
       database = await openDatabase('WhereHouse.db');
       List<Location> locations = await queryLocations('');
 
-      String locationsJson = jsonEncode(locations.map((location) => location.toMap()).toList());
+      String locationsJson =
+          jsonEncode(locations.map((location) => location.toMap()).toList());
 
       await File(outfileLocation).writeAsString(locationsJson);
       return true;
@@ -180,8 +183,11 @@ class LocationManager {
     try {
       String fileContent = await File(infileLocation).readAsString();
 
-      List<Map<String, dynamic>> locationMaps = List<Map<String, dynamic>>.from(jsonDecode(fileContent));
-      List<Location> locations = locationMaps.map((locationMap) => Location.fromMap(locationMap)).toList();
+      List<Map<String, dynamic>> locationMaps =
+          List<Map<String, dynamic>>.from(jsonDecode(fileContent));
+      List<Location> locations = locationMaps
+          .map((locationMap) => Location.fromMap(locationMap))
+          .toList();
 
       for (Location location in locations) {
         await addLocation(location.name, location.defaultLocation);
@@ -194,4 +200,3 @@ class LocationManager {
     }
   }
 }
-

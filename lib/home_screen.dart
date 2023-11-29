@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:wherehouse/Item_Management/Controllers/item_controller.dart';
 import 'package:wherehouse/Item_Management/Controllers/scanner_controller.dart';
+import 'package:wherehouse/LocationController.dart';
 import 'package:wherehouse/database/Item.dart';
 import 'package:wherehouse/database/ItemManager.dart';
+import 'package:wherehouse/database/LocationManager.dart';
 
 class MyApp extends StatelessWidget {
   late ItemManager itemManager;
@@ -54,6 +56,8 @@ class MyHomePage extends StatefulWidget {
   late ItemManager itemManager;
   late ItemController itemController;
   late ScannerController scannerController;
+  late LocationManager locationManager;
+  late LocationController locationController;
   late Item item = Item(
       uid: 10,
       name: 'Copier Toner',
@@ -61,7 +65,7 @@ class MyHomePage extends StatefulWidget {
           'Tones Copiers but sometimes this is not enough and it needs to tone other things like koalas and crazy kangaroos in the outback',
       barcodes: ['1234', '4321'],
       // locationQuantities: <int, int>{1: 2, 3: 4},
-      locationUID: 0);
+      locationUID: 1);
   MyHomePage({super.key, required this.title}) {
     itemManager = ItemManager();
     itemManager.initializeDatabase().then((value) async {
@@ -69,9 +73,9 @@ class MyHomePage extends StatefulWidget {
           item.name, item.description, item.barcodes, item.locationUID);
       if (tempitem != null) {
         item = tempitem as Item;
-        itemManager.updateItemCount(0, item.uid, 3);
+        // itemManager.updateItemCount(0, item.uid, 3);
         itemManager.updateItemCount(1, item.uid, 2);
-        itemManager.updateItemCount(4, item.uid, 4);
+        // itemManager.updateItemCount(4, item.uid, 4);
       }
       // await itemManager.editItem(
       //     uid: item.uid,
@@ -82,7 +86,10 @@ class MyHomePage extends StatefulWidget {
 
       itemManager.queryItems('koala').then((value) => print(value.toString()));
     });
-    itemController = ItemController(itemManager: itemManager);
+    locationManager = LocationManager();
+    locationController = LocationController(locationManager: locationManager);
+    itemController = ItemController(
+        locationController: locationController, itemManager: itemManager);
     scannerController = ScannerController(itemController: itemController);
   }
 
@@ -152,7 +159,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   widget.itemController.showItemList(context: context);
                 },
                 child: Text("Search Items")),
-            ElevatedButton(onPressed: () {}, child: Text("Manage Locations")),
+            ElevatedButton(
+                onPressed: () {
+                  widget.locationController.showLocationList(context: context);
+                },
+                child: Text("Manage Locations")),
             ElevatedButton(onPressed: () {}, child: Text("Manage Users")),
             ElevatedButton(
                 onPressed: () {}, child: Text("Transaction History")),

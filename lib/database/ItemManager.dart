@@ -10,7 +10,7 @@ class ItemManager {
   late Database database;
 
   ItemManager() {
-    // initializeDatabase();
+    initializeDatabase();
   }
 
   Future<void> initializeDatabase() async {
@@ -44,17 +44,17 @@ class ItemManager {
           'checkedOutItems TEXT'
           ')',
         );
-        // await db.execute(
-        //   'CREATE TABLE IF NOT EXISTS Transaction('
-        //   'transactionUid INTEGER PRIMARY KEY, '
-        //   'userUid INTEGER, '
-        //   'itemUid INTEGER, '
-        //   'locationUid INTEGER, '
-        //   'FOREIGN KEY (userUid) REFERENCES User(uid), '
-        //   'FOREIGN KEY (itemUid) REFERENCES Item(uid), '
-        //   'FOREIGN KEY (locationUid) REFERENCES Location(uid)'
-        //   ')',
-        // );
+        await db.execute(
+          'CREATE TABLE IF NOT EXISTS Transaction('
+          'transactionUid INTEGER PRIMARY KEY, '
+          'userUid INTEGER, '
+          'itemUid INTEGER, '
+          'locationUid INTEGER, '
+          'FOREIGN KEY (userUid) REFERENCES User(uid), '
+          'FOREIGN KEY (itemUid) REFERENCES Item(uid), '
+          'FOREIGN KEY (locationUid) REFERENCES Location(uid)'
+          ')',
+        );
         await db.execute(
           'CREATE TABLE IF NOT EXISTS LocationItemCount('
           'locationUid INTEGER, '
@@ -110,7 +110,7 @@ class ItemManager {
       database = await openDatabase('WhereHouse.db');
 
       int rowsDeleted =
-          await database.delete('Item', where: 'UID = ?', whereArgs: [uid]);
+          await database.delete('Item', where: 'uid = ?', whereArgs: [uid]);
 
       if (rowsDeleted > 0) {
         // await updateItemCount(itemToRemove.locationUID, uid, -1);
@@ -119,7 +119,7 @@ class ItemManager {
 
       return rowsDeleted > 0;
     } catch (e) {
-      print(e);
+      print("Error Deleting: $e");
       return false;
     }
   }

@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:test/test.dart';
 import 'package:wherehouse/database/ItemManager.dart';
@@ -12,33 +11,30 @@ import 'package:matcher/src/equals_matcher.dart' as matcher;
 void main() {
   // Set up sqflite_common_ffi before running tests
   setUp(() async {
-void main() {
-  // Set up sqflite_common_ffi before running tests
-  setUp(() async {
     databaseFactory = databaseFactoryFfi;
     sqfliteFfiInit();
     final databasePath = await getDatabasesPath();
-    await openDatabase(
-        join(databasePath, 'WhereHouse.db'), onCreate: (db, version) async {
+    await openDatabase(join(databasePath, 'WhereHouse.db'),
+        onCreate: (db, version) async {
       await db.execute(
         'CREATE TABLE IF NOT EXISTS Item('
-            'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
-            'name TEXT, '
-            'description TEXT, '
-            'barcodes TEXT, '
-            'locationUID INTEGER, '
-            'FOREIGN KEY (locationUID) REFERENCES Location(uid)'
-            ')',
+        'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'name TEXT, '
+        'description TEXT, '
+        'barcodes TEXT, '
+        'locationUID INTEGER, '
+        'FOREIGN KEY (locationUID) REFERENCES Location(uid)'
+        ')',
       );
       await db.execute(
         'CREATE TABLE IF NOT EXISTS LocationItemCount('
-            'locationUid INTEGER, '
-            'itemUid INTEGER, '
-            'itemCount INTEGER, '
-            'PRIMARY KEY (locationUid, itemUid), '
-            'FOREIGN KEY (locationUid) REFERENCES Location(uid), '
-            'FOREIGN KEY (itemUid) REFERENCES Item(uid)'
-            ')',
+        'locationUid INTEGER, '
+        'itemUid INTEGER, '
+        'itemCount INTEGER, '
+        'PRIMARY KEY (locationUid, itemUid), '
+        'FOREIGN KEY (locationUid) REFERENCES Location(uid), '
+        'FOREIGN KEY (itemUid) REFERENCES Item(uid)'
+        ')',
       );
     }, version: 1);
   });
@@ -48,7 +44,6 @@ void main() {
     final databasePath = await getDatabasesPath();
     await deleteDatabase(join(databasePath, 'WhereHouse.db'));
   });
-
 
   test('Add Item', () async {
     ItemManager itemManager = ItemManager();
