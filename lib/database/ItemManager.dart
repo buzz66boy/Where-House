@@ -110,7 +110,7 @@ class ItemManager {
       database = await openDatabase('WhereHouse.db');
 
       int rowsDeleted =
-          await database.delete('Item', where: 'uid = ?', whereArgs: [uid]);
+          await database.delete('Item', where: 'UID = ?', whereArgs: [uid]);
 
       if (rowsDeleted > 0) {
         // await updateItemCount(itemToRemove.locationUID, uid, -1);
@@ -119,7 +119,7 @@ class ItemManager {
 
       return rowsDeleted > 0;
     } catch (e) {
-      print("Error Deleting $e");
+      print(e);
       return false;
     }
   }

@@ -3,11 +3,15 @@ import 'dart:io' show Platform;
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:wherehouse/Item_Management/Controllers/item_controller.dart';
+import 'package:wherehouse/database/Item.dart';
 
 //void main() => runApp(const ScannerController() as Widget);
 
 class ScannerController extends StatefulWidget {
-  const ScannerController({Key? key}) : super(key: key);
+  final ItemController itemController;
+
+  ScannerController({Key? key, required this.itemController}) : super(key: key);
   @override
   State<ScannerController> createState() => _ScannerControllerState();
 }
@@ -166,7 +170,11 @@ class _ScannerControllerState extends State<ScannerController> {
           ),
         ),
       );
-      setState(() => scanResult = result);
+      debugPrint("Scanned!");
+      // setState(() => scanResult = result);
+      if (result != null) {
+        widget.itemController.itemScanned(context, scanResult.toString());
+      }
     } on PlatformException catch (e) {
       setState(() {
         scanResult = ScanResult(

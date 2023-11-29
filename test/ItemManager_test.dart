@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:test/test.dart';
 import 'package:wherehouse/database/ItemManager.dart';
@@ -8,6 +9,9 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:matcher/src/equals_matcher.dart' as matcher;
 
+void main() {
+  // Set up sqflite_common_ffi before running tests
+  setUp(() async {
 void main() {
   // Set up sqflite_common_ffi before running tests
   setUp(() async {
@@ -58,32 +62,28 @@ void main() {
     expect(newItem, isNotNull);
 
     // Ensure that the item has been added to the database
-    Item testItem = Item(name:'Chalk', description: "White", barcodes: ['123', '456'], locationUID: 67 );
-    bool result = await testItem.setItem();
-    expect(result, true);
-
-    var retrievedItem = await Item.getItem(testItem.uid);
-    //expect(retrievedItem, isNotNull);
-    expect(retrievedItem!.uid, matcher.equals(testItem.uid));
-
+    Item? retrievedItem = await Item.getItem(newItem!.uid);
+    expect(retrievedItem, isNotNull);
+    expect(retrievedItem!.uid, matcher.equals(newItem.uid));
   });
 
   test('Remove Item', () async {
     ItemManager itemManager = ItemManager();
     // Ensure that removing an item returns true
-    await itemManager.addItem(
+    Item? newItem = await itemManager.addItem(
       'Test Item',
       'Test Description',
       ['12345', '67890'],
       1,
     );
+    expect(newItem, isNotNull);
 
-    List<Item> items = await itemManager.queryItems('Test Item');
-    expect(items, isNotEmpty);
+    bool result = await itemManager.removeItem(newItem!.uid);
+    expect(result, true);
 
-    // Remove the added location
-    bool removeResult = await itemManager.removeItem(items[0].uid);
-    expect(removeResult, true);
+    // Ensure that the item has been removed from the database
+    Item? retrievedItem = await Item.getItem(newItem.uid);
+    expect(retrievedItem, isNull);
   });
 
   test('Edit Item', () async {
@@ -132,10 +132,9 @@ void main() {
     expect(itemCount[0]['itemCount'], matcher.equals(5));
   });
 
- test('Query Item Count', () async {
+  test('Query Item Count', () async {
     ItemManager itemManager = ItemManager();
-    bool result = await itemManager.updateItemCount(1, 1, 5);
-
+    // Ensure that querying item count returns a non-null list
     List<Map<String, dynamic>>? itemCount = await itemManager.queryItemCount(
       locationUid: 1,
       itemUid: 1,
@@ -145,12 +144,6 @@ void main() {
 
   test('Query Items', () async {
     ItemManager itemManager = ItemManager();
-    await itemManager.addItem(
-      'Test Item',
-      'Test Description',
-      ['12345', '67890'],
-      1,
-    );
     // Ensure that querying items returns a non-empty list
     List<Item> items = await itemManager.queryItems();
     expect(items, isNotNull);
@@ -158,14 +151,7 @@ void main() {
   });
 
   test('Export Items', () async {
-
     ItemManager itemManager = ItemManager();
-    await itemManager.addItem(
-      'Test Item',
-      'Test Description',
-      ['12345', '67890'],
-      1,
-    );
     // Ensure that exporting items returns true
     bool result = await itemManager.exportItems('test_export.json');
     expect(result, true);

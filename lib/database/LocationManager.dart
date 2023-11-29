@@ -46,7 +46,7 @@ class LocationManager {
               'checkedOutItems TEXT'
               ')',
         );
-        await db.execute(
+        /*await db.execute(
           'CREATE TABLE IF NOT EXISTS Transaction('
               'transactionUid INTEGER PRIMARY KEY AUTOINCREMENT, '
               'userUid INTEGER, '
@@ -56,7 +56,7 @@ class LocationManager {
               'FOREIGN KEY (itemUid) REFERENCES Item(uid), '
               'FOREIGN KEY (locationUid) REFERENCES Location(uid)'
               ')',
-        );
+        );*/
         await db.execute(
           'CREATE TABLE IF NOT EXISTS LocationItemCount('
               'locationUid INTEGER, '
