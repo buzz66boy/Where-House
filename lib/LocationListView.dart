@@ -1,5 +1,5 @@
-import Location.dart;
-import LocationView.dart;
+import 'package:wherehouse/database/Location.dart';
+import 'LocationView.dart';
 import 'package:flutter/material.dart';
 
 // I'm making a LocationListView widget to display a list of Locations.
@@ -46,7 +46,7 @@ class _LocationListViewState extends State<LocationListView> {
               itemBuilder: (context, index) {
                 return ListTile(
                   title: Text(displayedLocations[index].name),
-                  subtitle: Text(displayedLocations[index].description),
+                  subtitle: Text(displayedLocations[index].uid.toString()),
                 );
               },
             ),
@@ -57,13 +57,13 @@ class _LocationListViewState extends State<LocationListView> {
   }
 }
 
-void main() {
-  // I'm setting up a list of dummy locations for the purpose of this example.
-  List<Location> locations = [
-    Location(name: 'Central Park', description: 'A large public, urban park.'),
-    // ... add more locations here
-  ];
+// void main() {
+//   // I'm setting up a list of dummy locations for the purpose of this example.
+//   List<Location> locations = [
+//     Location(name: 'Central Park', description: 'A large public, urban park.'),
+//     // ... add more locations here
+//   ];
 
-  // The main function is the entry point of the app, where I run my app with LocationListView.
-  runApp(MaterialApp(home: LocationListView(locationList: locations)));
-}
+//   // The main function is the entry point of the app, where I run my app with LocationListView.
+//   runApp(MaterialApp(home: LocationListView(locationList: locations)));
+// }
