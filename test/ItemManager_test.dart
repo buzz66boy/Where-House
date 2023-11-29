@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:test/test.dart';
 import 'package:wherehouse/database/ItemManager.dart';
@@ -8,6 +9,9 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:matcher/src/equals_matcher.dart' as matcher;
 
+void main() {
+  // Set up sqflite_common_ffi before running tests
+  setUp(() async {
 void main() {
   // Set up sqflite_common_ffi before running tests
   setUp(() async {

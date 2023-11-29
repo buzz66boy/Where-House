@@ -89,8 +89,8 @@ class LocationManager {
       bool success = await newLocation.setLocation();
       return success;
     } catch (e) {
-        print('Error adding location: $e');
-        return false;
+      print('Error adding location: $e');
+      return false;
     }
   }
 
@@ -101,8 +101,8 @@ class LocationManager {
       int rowsDeleted = await database.delete('Location', where: 'UID = ?', whereArgs: [uid]);
       return rowsDeleted > 0;
     } catch (e) {
-        print(e);
-        return false;
+      print(e);
+      return false;
     }
   }
 
@@ -170,8 +170,8 @@ class LocationManager {
       await File(outfileLocation).writeAsString(locationsJson);
       return true;
     } catch (e) {
-        print('Error exporting locations: $e');
-        return false;
+      print('Error exporting locations: $e');
+      return false;
     }
   }
 
@@ -189,8 +189,8 @@ class LocationManager {
 
       return true;
     } catch (e) {
-        print('Error importing locations: $e');
-        return false;
+      print('Error importing locations: $e');
+      return false;
     }
   }
 }

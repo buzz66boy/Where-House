@@ -3,14 +3,14 @@ import 'dart:async';
 import 'dart:convert';
 
 class Item {
-  late int uid;
+  int uid;
   String name;
   String description;
   List<String> barcodes;
   int locationUID;
 
   Item({
-    this.uid = 0,
+    this.uid = -1,
     required this.name,
     required this.description,
     required this.barcodes,
@@ -19,7 +19,8 @@ class Item {
 
   static Future<Item> getItem(int uid) async {
     Database db = await openDatabase('WhereHouse.db');
-    List<Map> results = await db.query('Item', where: 'uid = ?', whereArgs: [uid]);
+    List<Map> results =
+        await db.query('Item', where: 'uid = ?', whereArgs: [uid]);
     await db.close();
 
     if (results.isNotEmpty) {
@@ -38,18 +39,17 @@ class Item {
   Future<bool> setItem() async {
     Database db = await openDatabase('WhereHouse.db');
     try {
-      await db.insert(
+      uid = await db.insert(
         'Item',
         toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
       await db.close();
       return true;
-
     } catch (e) {
-        print(e);
-        await db.close();
-        return false;
+      print('Set Item Failed: ' + e.toString());
+      await db.close();
+      return false;
     }
   }
 
@@ -64,21 +64,26 @@ class Item {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'uid': uid,
-      'name': name,
-      'description': description,
-      'barcodes': barcodes.join(','),
-      'locationUID': locationUID,
-    };
+    if (uid > -1) {
+      return {
+        'uid': uid,
+        'name': name,
+        'description': description,
+        'barcodes': barcodes.join(','),
+        'locationUID': locationUID,
+      };
+    } else {
+      return {
+        'name': name,
+        'description': description,
+        'barcodes': barcodes.join(','),
+        'locationUID': locationUID,
+      };
+    }
   }
-
-
 
   @override
   String toString() {
     return 'Item{uid: $uid, name: $name, description: $description, barcodes: $barcodes, locationQuantities: $locationUID}';
   }
 }
-
-

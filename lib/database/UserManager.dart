@@ -90,8 +90,8 @@ class UserManager {
 
       return success;
     } catch (e) {
-        print('Error adding user: $e');
-        return false;
+      print('Error adding user: $e');
+      return false;
     }
   }
 
@@ -101,8 +101,8 @@ class UserManager {
       int rowsDeleted = await database.delete('User', where: 'uid = ?', whereArgs: [uid]);
       return rowsDeleted > 0;
     } catch (e) {
-        print(e);
-        return false;
+      print(e);
+      return false;
     }
   }
 
@@ -127,8 +127,8 @@ class UserManager {
         return null;
       }
     } catch (e) {
-        print(e);
-        return null;
+      print(e);
+      return null;
     }
   }
 
@@ -155,8 +155,8 @@ class UserManager {
         );
       }).toList();
     } catch (e) {
-        print(e);
-        return [];
+      print(e);
+      return [];
     }
   }
 
@@ -171,8 +171,8 @@ class UserManager {
       await File(outfileLocation).writeAsString(usersJson);
       return true;
     } catch (e) {
-        print('Error exporting users: $e');
-        return false;
+      print('Error exporting users: $e');
+      return false;
     }
   }
 
@@ -190,11 +190,13 @@ class UserManager {
 
       return true;
     } catch (e) {
-        print('Error importing users: $e');
-        return false;
+      print('Error importing users: $e');
+      return false;
     }
   }
 
 
 }
+
+
 

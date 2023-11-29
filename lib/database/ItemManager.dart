@@ -10,7 +10,7 @@ class ItemManager {
   late Database database;
 
   ItemManager() {
-    initializeDatabase();
+    // initializeDatabase();
   }
 
   Future<void> initializeDatabase() async {
@@ -22,48 +22,48 @@ class ItemManager {
       onCreate: (db, version) async {
         await db.execute(
           'CREATE TABLE IF NOT EXISTS Item('
-              'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
-              'name TEXT, '
-              'description TEXT, '
-              'barcodes TEXT, '
-              'locationUID INTEGER, '
-              'FOREIGN KEY (locationUID) REFERENCES Location(uid)'
-              ')',
+          'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
+          'name TEXT, '
+          'description TEXT, '
+          'barcodes TEXT, '
+          'locationUID INTEGER, '
+          'FOREIGN KEY (locationUID) REFERENCES Location(uid)'
+          ')',
         );
         await db.execute(
           'CREATE TABLE IF NOT EXISTS Location('
-              'uid INTEGER PRIMARY KEY, '
-              'name TEXT, '
-              'defaultLocation INTEGER'
-              ')',
+          'uid INTEGER PRIMARY KEY, '
+          'name TEXT, '
+          'defaultLocation INTEGER'
+          ')',
         );
         await db.execute(
           'CREATE TABLE IF NOT EXISTS User('
-              'uid INTEGER PRIMARY KEY, '
-              'name TEXT, '
-              'checkedOutItems TEXT'
-              ')',
+          'uid INTEGER PRIMARY KEY, '
+          'name TEXT, '
+          'checkedOutItems TEXT'
+          ')',
         );
-        await db.execute(
-          'CREATE TABLE IF NOT EXISTS Transaction('
-              'transactionUid INTEGER PRIMARY KEY, '
-              'userUid INTEGER, '
-              'itemUid INTEGER, '
-              'locationUid INTEGER, '
-              'FOREIGN KEY (userUid) REFERENCES User(uid), '
-              'FOREIGN KEY (itemUid) REFERENCES Item(uid), '
-              'FOREIGN KEY (locationUid) REFERENCES Location(uid)'
-              ')',
-        );
+        // await db.execute(
+        //   'CREATE TABLE IF NOT EXISTS Transaction('
+        //   'transactionUid INTEGER PRIMARY KEY, '
+        //   'userUid INTEGER, '
+        //   'itemUid INTEGER, '
+        //   'locationUid INTEGER, '
+        //   'FOREIGN KEY (userUid) REFERENCES User(uid), '
+        //   'FOREIGN KEY (itemUid) REFERENCES Item(uid), '
+        //   'FOREIGN KEY (locationUid) REFERENCES Location(uid)'
+        //   ')',
+        // );
         await db.execute(
           'CREATE TABLE IF NOT EXISTS LocationItemCount('
-              'locationUid INTEGER, '
-              'itemUid INTEGER, '
-              'itemCount INTEGER, '
-              'PRIMARY KEY (locationUid, itemUid), '
-              'FOREIGN KEY (locationUid) REFERENCES Location(uid), '
-              'FOREIGN KEY (itemUid) REFERENCES Item(uid)'
-              ')',
+          'locationUid INTEGER, '
+          'itemUid INTEGER, '
+          'itemCount INTEGER, '
+          'PRIMARY KEY (locationUid, itemUid), '
+          'FOREIGN KEY (locationUid) REFERENCES Location(uid), '
+          'FOREIGN KEY (itemUid) REFERENCES Item(uid)'
+          ')',
         );
       },
       version: 1,
@@ -71,11 +71,11 @@ class ItemManager {
   }
 
   Future<Item?> addItem(
-      String name,
-      String description,
-      List<String> barcodes,
-      int locationUID,
-      ) async {
+    String name,
+    String description,
+    List<String> barcodes,
+    int locationUID,
+  ) async {
     try {
       database = await openDatabase('WhereHouse.db');
 
@@ -110,7 +110,7 @@ class ItemManager {
       database = await openDatabase('WhereHouse.db');
 
       int rowsDeleted =
-      await database.delete('Item', where: 'uid = ?', whereArgs: [uid]);
+          await database.delete('Item', where: 'UID = ?', whereArgs: [uid]);
 
       if (rowsDeleted > 0) {
         // await updateItemCount(itemToRemove.locationUID, uid, -1);
@@ -119,7 +119,7 @@ class ItemManager {
 
       return rowsDeleted > 0;
     } catch (e) {
-      print("Error Deleting: $e");
+      print(e);
       return false;
     }
   }
@@ -234,7 +234,7 @@ class ItemManager {
       if (query.isNotEmpty) {
         results = await database.query('Item',
             where:
-            'name LIKE ? OR uid LIKE ? OR description LIKE ? OR barcodes LIKE ? OR locationUID LIKE ?',
+                'name LIKE ? OR uid LIKE ? OR description LIKE ? OR barcodes LIKE ? OR locationUID LIKE ?',
             whereArgs: List.filled(5, '%$query%'));
       } else {
         results = await database.query('Item');
@@ -277,9 +277,9 @@ class ItemManager {
       String fileContent = await File(infileLocation).readAsString();
 
       List<Map<String, dynamic>> itemMaps =
-      List<Map<String, dynamic>>.from(jsonDecode(fileContent));
+          List<Map<String, dynamic>>.from(jsonDecode(fileContent));
       List<Item> items =
-      itemMaps.map((itemMap) => Item.fromMap(itemMap)).toList();
+          itemMaps.map((itemMap) => Item.fromMap(itemMap)).toList();
 
       for (Item item in items) {
         await addItem(

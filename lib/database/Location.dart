@@ -40,9 +40,9 @@ class Location {
       return true;
 
     } catch (e) {
-        print(e);
-        await db.close();
-        return false;
+      print(e);
+      await db.close();
+      return false;
     }
   }
 
