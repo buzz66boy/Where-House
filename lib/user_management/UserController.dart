@@ -23,51 +23,42 @@ class UserController {
     }
 
   }
-  // In UserController
 
-  Future<Object?> editUser(int uid, String newName, [List<int>? newCheckedOutItems]) async {
-    try {
-      return await userManager.editUser(uid: uid, name: newName, checkedOutItems: newCheckedOutItems);
-    } catch (error) {
-      if (kDebugMode) {
-        print('Error editing user: $error');
-      }
+  /// User Controller Edit user Contract 4.
+  Future<User?> editUser(
+      int uid,
+      String name,
+      List<int> checkOutItems,
+      ) async{
+    return userManager.editUser(uid:uid,name: name,checkedOutItems: checkOutItems);
+
+  }
+
+  /// User Controller remove User Contract
+  Future<bool> removeUser(int uid) async{
+    bool removeUser = await userManager.removeUser(uid);
+    return removeUser;
+  }
+
+  Future<bool> setUser() async{
+    try{
+      bool userSet = await user.setUser();
+      return userSet;
+    }catch(e){
+      print("Error setting user:$e");
       return false;
     }
   }
 
-
-  Future<bool> removeUser(int uid) async {
+  void setUserViewActive(BuildContext context, int userUid) async {
     try {
-      return await userManager.removeUser(uid);
-    } catch (error) {
-      if (kDebugMode) {
-        print('Error removing user: $error');
-      }
-      return false;
-    }
-  }
-  Future<Object> setUser() async{
-    try {
-      return await user.setUser();
-    } catch (error){
-      if (kDebugMode){
-        print('Error setting user: $error');
-      }
-      return false;
-    }
-  }
-
-  void setUserViewActive(BuildContext context, int userId) async {
-    try {
-      /// recheck
-      User user =  User(name: 'bob',checkedOutItems: []);
+      User user = await User.getUser(userUid);
       if (user != null) {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => UserView(user: user)));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => UserView(user: user,userController: this)));
       } else {
-        // Handle the case where the user is not found
+
         if (kDebugMode) {
-          print('User not found for id: $userId');
+          print('User not found for id: $userUid');
         }
       }
     } catch (error) {
@@ -77,16 +68,16 @@ class UserController {
     }
   }
 
+
   Future<List<User>> getUsers([String query =''])async{
     try{
       return await userManager.queryUsers(query);
 
-   }catch (error) {
+    }catch (error) {
       if (kDebugMode) {
         print("Error getting users $error");
       }
       return [];
-      }
+    }
   }
 }
-
