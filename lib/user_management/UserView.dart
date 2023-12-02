@@ -41,6 +41,7 @@ class _UserViewState extends State<UserView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+<<<<<<< HEAD
         appBar: AppBar(
           title: const Text('User Information'),
         ),
@@ -61,6 +62,28 @@ class _UserViewState extends State<UserView> {
             ],
           ),
         )
+=======
+      appBar: AppBar(
+        title: const Text('User Information'),
+      ),
+       body: Center(
+         child: Column(
+           mainAxisAlignment: MainAxisAlignment.center,
+           children: <Widget>[
+             ElevatedButton(onPressed: () {
+               setState(() {
+                 _showUserInfo = !_showUserInfo;
+               });
+             },
+               child: const Text("View User"),
+             ),
+             ElevatedButton(onPressed: () => _editUserInfo(context),
+                 child: const Text("Edit User")),
+             if(_showUserInfo) displayUserInfo(),
+           ],
+         ),
+       )
+>>>>>>> origin
 
       // SingleChildScrollView(
       //   child: Column(
@@ -86,7 +109,11 @@ class _UserViewState extends State<UserView> {
 
 
   /// Contract 1: Display User Information
+<<<<<<< HEAD
   displayUserInfo() {
+=======
+   displayUserInfo() {
+>>>>>>> origin
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,6 +177,7 @@ class _UserViewState extends State<UserView> {
   }
 
 // void _editUserInfo(BuildContext context) {
+<<<<<<< HEAD
 //
 //   showDialog(
 //     context: context,
@@ -178,4 +206,34 @@ class _UserViewState extends State<UserView> {
 
 
 
+=======
+  //
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: const Text('Edit User Information'),
+  //
+  //         actions: <Widget>[
+  //           ElevatedButton(
+  //             child: const Text('Save'),
+  //             onPressed: () {
+  //               setState(() {
+  //                 widget.user.uid = int.parse(_uidController.toString());
+  //                 widget.user.name = _nameController.text;
+  //                 widget.user.checkedOutItems = _checkOutItemsController.text.split(',').map((item) => item.trim()).toList();
+  //               });
+  //
+  //               Navigator.of(context).pop();
+  //             },
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+
+
+  
+>>>>>>> origin
 }
