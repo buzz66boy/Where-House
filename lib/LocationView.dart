@@ -78,6 +78,9 @@ class _LocationViewState extends State<LocationView> {
               },
               //FIXME: Add item controller call to loc controller here (get_location_selection)
               child: Text("Edit Location Name")),
+          ElevatedButton(
+              onPressed: () => _deleteLocationDialog(context),
+              child: Text("Delete Location"))
           // Text('Description: $description'),
           // Text('Barcodes: ${barcodes.join(', ')}'),
           // Text('Locations: ${locations.join(', ')}'),
@@ -111,6 +114,41 @@ class _LocationViewState extends State<LocationView> {
                   Navigator.of(context).pop(nameController.text);
                 },
                 child: Text('Save'),
+              ),
+            ],
+          );
+        });
+  }
+
+  void _deleteLocationDialog(context) {
+    showDialog(
+        useRootNavigator: false,
+        context: context,
+        builder: (BuildContext ctx) {
+          return AlertDialog(
+            title: Text('Delete Location?'),
+            content: Text("Name: " +
+                widget.location.name +
+                "\n" +
+                "Deleting this Location will Remove all Associated items"), //FIXME: add different delete behaviors (ex. transfer all items to diff location)
+
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  bool success = await widget.locationController
+                      .deleteLocation(widget.location.uid);
+                  if (success) {
+                    Navigator.of(context).pop();
+                  }
+                  Navigator.of(context).pop();
+                },
+                child: Text('Delete'),
               ),
             ],
           );

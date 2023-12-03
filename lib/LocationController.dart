@@ -143,6 +143,10 @@ class LocationController {
     return locationManager.editLocation(
         uid: uid, name: name, defaultLocation: defLoc);
   }
+
+  Future<bool> deleteLocation(int uid) {
+    return locationManager.removeLocation(uid);
+  }
 }
 // Below is my Location class with properties for name, description, etc.
 // class Location {
