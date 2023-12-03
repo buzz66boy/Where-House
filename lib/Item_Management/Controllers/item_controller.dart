@@ -37,7 +37,7 @@ class ItemController {
         context,
         MaterialPageRoute(
             builder: (context) => ItemListView(
-                  itemList: ilist,
+                  initialItemList: ilist,
                   confirmSelect: true,
                   itemController: this,
                   barcodeScanned: '',
@@ -211,7 +211,7 @@ class ItemController {
         context,
         MaterialPageRoute(
             builder: (context) => ItemListView(
-                  itemList: itemList as List<Item>,
+                  initialItemList: itemList as List<Item>,
                   confirmSelect: false,
                   itemController: this,
                   barcodeScanned: barcodeScanned,
@@ -327,6 +327,19 @@ class ItemController {
     return itemList;
   }
 
+  Future<Item?> addBarcodeToItem(context, int itemUid, String barcode) async {
+    Item item = (await getItems(uid: itemUid))[0];
+    //Confirm they want to add barcode to the item
+    bool? confirm = await _confirmAddBarcodeDialog(context, item.name, barcode);
+
+    if (confirm != null && confirm) {
+      item.barcodes.add(barcode);
+      setItemInfo(uid: itemUid, barcodes: item.barcodes);
+      return item;
+    }
+    return null;
+  }
+
   Future<Item?> createNewItem(context, String barcode) async {
     //prompt for item name
     String? text = await _getItemName(context);
@@ -357,6 +370,33 @@ class ItemController {
       return newItem;
     }
     return null;
+  }
+
+  Future<bool?> _confirmAddBarcodeDialog(
+      context, String itemName, String newBarcode) async {
+    return showDialog(
+        useRootNavigator: false,
+        context: context,
+        builder: (BuildContext ctx) {
+          return AlertDialog(
+            title: Text('Add Barcode to Item?'),
+            content: Text("Name: $itemName \nNew Barcode: $newBarcode"),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.of(context).pop(true);
+                },
+                child: Text('Confirm'),
+              ),
+            ],
+          );
+        });
   }
 
   Future<String?> _getItemName(context) async {
