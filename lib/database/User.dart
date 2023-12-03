@@ -3,14 +3,14 @@ import 'package:sqflite/sqflite.dart';
 import 'dart:async';
 
 class User {
-  int uid;
+  late int uid;
   String name;
-  String checkedOutItemsJson;
+  List<dynamic> checkedOutItems;
 
   User({
-    required this.uid,
+    this.uid = -1,
     required this.name,
-    required this.checkedOutItemsJson,
+    required this.checkedOutItems,
   });
 
   static Future<User> getUser(int uid) async {
@@ -23,8 +23,7 @@ class User {
       return User(
         uid: results[0]['uid'],
         name: results[0]['name'],
-        checkedOutItemsJson: encodeCheckedOutItems(results[0]['checkedOutItems']),// changed to encode to meet
-        // parameters
+        checkedOutItems: List<int>.from(jsonDecode(results[0]['checkedOutItems'])),
       );
     } else {
       throw Exception("User not found in the database");
@@ -34,7 +33,12 @@ class User {
   Future<bool> setUser() async {
     Database db = await openDatabase('WhereHouse.db');
     try {
-      await db.update('User', toMap(), where: 'uid = ?', whereArgs: [this.uid]);
+      uid = await db.insert(
+        'User',
+        toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+
       await db.close();
       return true;
     } catch (e) {
@@ -44,28 +48,31 @@ class User {
     }
   }
 
+  factory User.fromMap(Map<String, dynamic> map) {
+    return User(
+      name: map['name'],
+      checkedOutItems: List<int>.from(jsonDecode(map['checkedOutItems'])),
+    );
+  }
+
   Map<String, dynamic> toMap() {
-    return {
-      'uid': uid,
-      'name': name,
-      'checkedOutItems': jsonEncode(checkedOutItemsJson),
-    };
-  }
 
-
-  static String encodeCheckedOutItems(Map<int, int> checkedOutItems) {
-    Map<String, int> stringKeyMap = checkedOutItems.map((key, value) => MapEntry(key.toString(), value));
-    return jsonEncode(stringKeyMap);
-  }
-
-  static Map<int, int> decodeCheckedOutItems(String json) {
-    Map<String, int> stringKeyMap = Map<String, int>.from(jsonDecode(json));
-    Map<int, int> intKeyMap = stringKeyMap.map((key, value) => MapEntry(int.parse(key), value));
-    return intKeyMap;
+    if (uid > -1) {
+      return {
+        'uid': uid,
+        'name': name,
+        'checkedOutItems': jsonEncode(checkedOutItems),
+      };
+    } else {
+      return {
+        'name': name,
+        'checkedOutItems': jsonEncode(checkedOutItems),
+      };
+    }
   }
 
   @override
   String toString() {
-    return 'User{uid: $uid, name: $name, checkedOutItems: $checkedOutItemsJson}';
+    return 'User{uid: $uid, name: $name, checkedOutItems: $checkedOutItems}';
   }
 }
