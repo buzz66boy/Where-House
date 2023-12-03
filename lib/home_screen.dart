@@ -13,6 +13,11 @@ class MyApp extends StatelessWidget {
   late ItemManager itemManager;
   late ItemController itemController;
   late ScannerController scannerController;
+  /// Added User 
+  late UserController userController;
+  late UserManager userManager;
+  late User user = User(uid: 1,name: "John doe", checkedOutItems: [1,3]);
+  
   MyApp({super.key}) {
     // ItemManager itemManager = ItemManager();
     // ItemController itemController = ItemController(itemManager: itemManager);
@@ -53,6 +58,18 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
+  // User added 
+  userManager = UserManager();
+  userManager.initializeDatabase().then((value) async{
+    bool tempUser = await userManager.addUser(user.name,user.checkedOutItems);
+      if(tempUser!=null){
+        user = tempUser as User;
+      }
+      userManager.queryUsers('John doe').then((value) => print(value.toString()));
+
+    });
+
+  
   late ItemManager itemManager;
   late ItemController itemController;
   late ScannerController scannerController;
@@ -164,7 +181,17 @@ class _MyHomePageState extends State<MyHomePage> {
                   widget.locationController.showLocationList(context: context);
                 },
                 child: Text("Manage Locations")),
-            ElevatedButton(onPressed: () {}, child: Text("Manage Users")),
+            
+            ElevatedButton(
+                onPressed: () async{
+                  widget.userController.setUserViewActive(context, 1);
+                  print("made it here to users");
+                }, child: Text("Manage User")),
+             ElevatedButton(onPressed: () async{
+
+            }, child: Text("Manage Users")),
+
+            
             ElevatedButton(
                 onPressed: () {}, child: Text("Transaction History")),
             ElevatedButton(onPressed: () {}, child: Text("Settings")),

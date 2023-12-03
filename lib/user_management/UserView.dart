@@ -1,85 +1,181 @@
 import 'package:flutter/material.dart';
-import 'package:wherehouse/database/UserManager.dart';
-import '../database/User.dart';
+import '../../database/User.dart';
 import 'UserController.dart';
 
-class UserView extends StatelessWidget {
+class UserView extends StatefulWidget {
   final User user;
-  const UserView({Key? key, required this.user}) : super(key: key);
-  @override
-  @override
-  Widget build(BuildContext context) {
+  final UserController userController;
 
-    final UserController userController;
+  const UserView({
+    super.key,
+    required this.user,
+    required  this.userController ,
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Manage User'),
-        backgroundColor: Colors.cyan,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            const SizedBox(height: 20),
-            const Text('User Details', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            Text('Name: ${user.name}'),
-            const Spacer(), /// This will push the button towards the bottom
-            ElevatedButton(onPressed: () => _editUser(context), child: const Text("Edit User")),
-          ],
-        ),
-      ),
-    );
+  });
+
+  @override
+  State<StatefulWidget> createState() => _UserViewState();
+}
+
+class _UserViewState extends State<UserView> {
+  _UserViewState();
+  late User currentUser;
+  final _uidController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _checkOutItemsController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    currentUser = widget.user;
+    _uidController.text = widget.user.uid.toString();
+    _nameController.text = widget.user.name;
+    _checkOutItemsController.text = _checkOutItemsToString(widget.user.checkedOutItems);
 
   }
-  void _editUser(BuildContext context) async {
-    UserManager userManager = UserManager();
+  String _checkOutItemsToString(List <dynamic> items){
+    return items.join(',');
+  }
+  bool _showUserInfo =false;
 
-    String? newName = await showDialog<String>(
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('User Information'),
+      ),
+       body: Center(
+         child: Column(
+           mainAxisAlignment: MainAxisAlignment.center,
+           children: <Widget>[
+             ElevatedButton(onPressed: () {
+               setState(() {
+                 _showUserInfo = !_showUserInfo;
+               });
+             },
+               child: const Text("View User"),
+             ),
+             ElevatedButton(onPressed: () => _editUserInfo(context),
+                 child: const Text("Edit User")),
+             if(_showUserInfo) displayUserInfo(),
+           ],
+         ),
+       )
+
+      // SingleChildScrollView(
+      //   child: Column(
+      //     mainAxisAlignment: MainAxisAlignment.end,
+      //     crossAxisAlignment: CrossAxisAlignment.end,
+      //     children: <Widget>[
+      //       ElevatedButton(
+      //           onPressed: () => _editUserInfo(context),
+      //           child: const Text("Edit User")
+      //       ),
+      //
+      //       Padding(
+      //         padding: const EdgeInsets.all(40.0),
+      //         child: displayUserInfo(),
+      //       ),
+      //     ],
+      //   ),
+      // ),
+    );
+  }
+
+
+
+
+  /// Contract 1: Display User Information
+   displayUserInfo() {
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('User Id: ${currentUser.uid}'),
+        Text('Name: ${currentUser.name}'),
+        Text('Checked Out items: ${currentUser.checkedOutItems}'),
+
+      ],
+    );
+  }
+
+  /// Private Responsibility: Edit User Information
+  void _editUserInfo(BuildContext context) {
+    showDialog(
       context: context,
       builder: (BuildContext context) {
-
-        String? updatedName;
-
         return AlertDialog(
-          title: const Text('Edit User'),
-          content: TextField(
-            controller: TextEditingController(text: user.name),
-            decoration: const InputDecoration(hintText: "Enter user's new name"),
-            onChanged: (value) {
-
-              updatedName = value;
-            },
+          title: const Text('Edit User Information'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                TextFormField(
+                  controller: _uidController,
+                  decoration: const InputDecoration(
+                    labelText: 'User ID',
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                  ),
+                ),
+                TextFormField(
+                  controller: _checkOutItemsController, // Use check out items controller
+                  decoration: InputDecoration(
+                    labelText: 'Checked Out Items',
+                  ),
+                ),
+              ],
+            ),
           ),
           actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            TextButton(
+            ElevatedButton(
               child: const Text('Save'),
               onPressed: () {
-                /// Pass the updated name back when the save button is pressed.
-                Navigator.of(context).pop(updatedName);
+                setState(() {
+                  widget.user.uid = int.tryParse(_uidController.text) ?? widget.user.uid; // Parse UID from text
+                  widget.user.name = _nameController.text;
+                  widget.user.checkedOutItems = _checkOutItemsController.text.split(',').map((item) => item.trim()).toList();
+                });
+                Navigator.of(context).pop();
               },
             ),
           ],
         );
       },
     );
-
-    /// Check if the newName is not equal to null .
-    if (newName != null && newName.isNotEmpty) {
-
-      UserController userController = UserController(userManager);
-      Object? success = await userController.editUser(user.uid, newName);
-      if (success != null) {
-
-        userController.setUser();
-      }
-    }
   }
 
+// void _editUserInfo(BuildContext context) {
+  //
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: const Text('Edit User Information'),
+  //
+  //         actions: <Widget>[
+  //           ElevatedButton(
+  //             child: const Text('Save'),
+  //             onPressed: () {
+  //               setState(() {
+  //                 widget.user.uid = int.parse(_uidController.toString());
+  //                 widget.user.name = _nameController.text;
+  //                 widget.user.checkedOutItems = _checkOutItemsController.text.split(',').map((item) => item.trim()).toList();
+  //               });
+  //
+  //               Navigator.of(context).pop();
+  //             },
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
+
+  
 }
