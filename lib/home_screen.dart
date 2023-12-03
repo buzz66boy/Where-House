@@ -8,16 +8,17 @@ import 'package:wherehouse/LocationController.dart';
 import 'package:wherehouse/database/Item.dart';
 import 'package:wherehouse/database/ItemManager.dart';
 import 'package:wherehouse/database/LocationManager.dart';
+import 'package:wherehouse/database/User.dart';
+import 'package:wherehouse/database/UserManager.dart';
+import 'package:wherehouse/user_management/UserController.dart';
 
 class MyApp extends StatelessWidget {
   late ItemManager itemManager;
   late ItemController itemController;
   late ScannerController scannerController;
-  /// Added User 
-  late UserController userController;
-  late UserManager userManager;
-  late User user = User(uid: 1,name: "John doe", checkedOutItems: [1,3]);
-  
+
+  /// Added User
+
   MyApp({super.key}) {
     // ItemManager itemManager = ItemManager();
     // ItemController itemController = ItemController(itemManager: itemManager);
@@ -58,18 +59,10 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  // User added 
-  userManager = UserManager();
-  userManager.initializeDatabase().then((value) async{
-    bool tempUser = await userManager.addUser(user.name,user.checkedOutItems);
-      if(tempUser!=null){
-        user = tempUser as User;
-      }
-      userManager.queryUsers('John doe').then((value) => print(value.toString()));
+  // User added
+  late UserManager userManager = UserManager();
+  late UserController userController = UserController(userManager);
 
-    });
-
-  
   late ItemManager itemManager;
   late ItemController itemController;
   late ScannerController scannerController;
@@ -84,6 +77,17 @@ class MyHomePage extends StatefulWidget {
       // locationQuantities: <int, int>{1: 2, 3: 4},
       locationUID: 1);
   MyHomePage({super.key, required this.title}) {
+    userManager.initializeDatabase().then((value) async {
+      User user = User(uid: 1, name: "John doe", checkedOutItems: [1, 3]);
+      bool tempUser =
+          await userManager.addUser(user.name, user.checkedOutItems);
+      // if (tempUser != null) {
+      //   user = tempUser as User;
+      // }
+      userManager
+          .queryUsers('John doe')
+          .then((value) => print(value.toString()));
+    });
     itemManager = ItemManager();
     itemManager.initializeDatabase().then((value) async {
       Item? tempitem = await itemManager.addItem(
@@ -105,7 +109,7 @@ class MyHomePage extends StatefulWidget {
     });
     locationManager = LocationManager();
     locationController = LocationController(locationManager: locationManager);
-    itemController = ItemController(
+    itemController = ItemControllerHolder.instantiateItemController(
         locationController: locationController, itemManager: itemManager);
     scannerController = ScannerController(itemController: itemController);
   }
@@ -181,17 +185,13 @@ class _MyHomePageState extends State<MyHomePage> {
                   widget.locationController.showLocationList(context: context);
                 },
                 child: Text("Manage Locations")),
-            
             ElevatedButton(
-                onPressed: () async{
+                onPressed: () async {
                   widget.userController.setUserViewActive(context, 1);
                   print("made it here to users");
-                }, child: Text("Manage User")),
-             ElevatedButton(onPressed: () async{
-
-            }, child: Text("Manage Users")),
-
-            
+                },
+                child: Text("Manage User")),
+            ElevatedButton(onPressed: () async {}, child: Text("Manage Users")),
             ElevatedButton(
                 onPressed: () {}, child: Text("Transaction History")),
             ElevatedButton(onPressed: () {}, child: Text("Settings")),

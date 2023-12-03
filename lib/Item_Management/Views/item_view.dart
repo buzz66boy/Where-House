@@ -230,8 +230,9 @@ class _ItemViewState extends State<ItemView> {
                                             1;
                                     widget.itemController
                                         .updateItemLocationQuantities(
-                                            widget.item.uid,
-                                            widget.locationQuantities);
+                                            itemUid: widget.item.uid,
+                                            uidQuantMap:
+                                                widget.locationQuantities);
                                     setState(
                                         () {}); //FIXME: hack for updating UI
                                   }
@@ -254,8 +255,9 @@ class _ItemViewState extends State<ItemView> {
                                             1;
                                     widget.itemController
                                         .updateItemLocationQuantities(
-                                            widget.item.uid,
-                                            widget.locationQuantities);
+                                            itemUid: widget.item.uid,
+                                            uidQuantMap:
+                                                widget.locationQuantities);
                                     setState(
                                         () {}); //FIXME: hack for updating UI
                                   }

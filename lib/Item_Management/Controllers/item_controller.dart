@@ -7,6 +7,21 @@ import 'package:wherehouse/database/Item.dart';
 import 'package:wherehouse/database/ItemManager.dart';
 import 'package:wherehouse/database/Location.dart';
 
+class ItemControllerHolder {
+  static late ItemController itemController;
+
+  static ItemController instantiateItemController(
+      {required locationController, required itemManager}) {
+    itemController = ItemController(
+        locationController: locationController, itemManager: itemManager);
+    return itemController;
+  }
+
+  static ItemController getInstance() {
+    return itemController;
+  }
+}
+
 class ItemController {
   final ItemManager itemManager;
   final LocationController locationController;
@@ -109,14 +124,16 @@ class ItemController {
         //[{locationUid: 0, itemUid: 10, itemCount: 3}, {locationUid: 1, itemUid: 10, itemCount: 2}]
         // debugPrint('Test Message: ' + quant.toString());
         bool defLocHandled = false;
-        for (int i = 0; i < quant.length; i++) {
-          if (quant[i]['locationUid'] == item.locationUID) {
-            locQuant[quant[i]['locationUid']] = quant[i]['itemCount'];
-            defLocHandled = true;
+        if (item.locationUID >= 0) {
+          for (int i = 0; i < quant.length; i++) {
+            if (quant[i]['locationUid'] == item.locationUID) {
+              locQuant[quant[i]['locationUid']] = quant[i]['itemCount'];
+              defLocHandled = true;
+            }
           }
-        }
-        if (!defLocHandled) {
-          locQuant[item.locationUID] = 0;
+          if (!defLocHandled) {
+            locQuant[item.locationUID] = 0;
+          }
         }
         for (int i = 0; i < quant.length; i++) {
           if (!defLocHandled || quant[i]['locationUid'] != item.locationUID) {
@@ -128,11 +145,35 @@ class ItemController {
     return locQuant;
   }
 
-  void updateItemLocationQuantities(int uid, Map<int, int> locQuant) async {
-    locQuant.forEach((key, value) async {
-      await itemManager.updateItemCount(
-          key, uid, value); //FIXME: return bool for success
-    });
+  Future<Map<int, int>> getLocationItems(int locUid) async {
+    Map<int, int> itemQuant = {};
+    List<Map<String, dynamic>>? quant =
+        await itemManager.queryItemCount(locationUid: locUid);
+
+    if (quant != null) {
+      //build itemQuant map for location
+      //[{itemUid: 0, itemCount: 3}, {itemUid: 1, itemCount: 2}]
+      for (int i = 0; i < quant.length; i++) {
+        itemQuant[quant[i]['itemUid']] = quant[i]['itemCount'];
+      }
+    }
+
+    return itemQuant;
+  }
+
+  void updateItemLocationQuantities(
+      {int? itemUid, int? locUid, required Map<int, int> uidQuantMap}) async {
+    if (itemUid != null) {
+      uidQuantMap.forEach((key, value) async {
+        await itemManager.updateItemCount(
+            key, itemUid, value); //FIXME: return bool for success
+      });
+    } else if (locUid != null) {
+      uidQuantMap.forEach((key, value) async {
+        await itemManager.updateItemCount(
+            locUid, key, value); //FIXME: return bool for success
+      });
+    }
   }
 
   void showItemList(
@@ -207,7 +248,11 @@ class ItemController {
         retItem = (await getItems(uid: uid))[0]; //FIXME: should check if exists
       }
       if (locationQuantityMap != null) {
-        updateItemLocationQuantities(uid, locationQuantityMap);
+        updateItemLocationQuantities(
+          itemUid: uid,
+          uidQuantMap: locationQuantityMap,
+        );
+        // updateItemLocationQuantities(itemUid: itemuid, ui locationQuantityMap);
       }
       return retItem;
       // Item();
@@ -290,7 +335,13 @@ class ItemController {
     //     .then((value) => {debugPrint(nameController.text)});
     if (text != null) {
       // debugPrint(text);
+      //get default location selection
+      int defaultLocUid = -1;
 
+      Location? defLocSelected = await _getDefaultLocationPopup(context);
+      if (defLocSelected != null) {
+        defaultLocUid = defLocSelected.uid;
+      }
       //create item via ItemManager
       List<String> barcodes = [];
       if (barcode.isNotEmpty) {
@@ -298,7 +349,7 @@ class ItemController {
         barcodes.add(barcode);
       }
       Item? newItem = await itemManager.addItem(text, '', barcodes,
-          1); //FIXME: avoid hardcoding 0 as default location
+          defaultLocUid); //FIXME: avoid hardcoding 0 as default location
       //go to item view in edit mode
       if (newItem != null) {
         showItem(context, newItem);
@@ -332,6 +383,33 @@ class ItemController {
                   Navigator.of(context).pop(nameController.text);
                 },
                 child: Text('Save'),
+              ),
+            ],
+          );
+        });
+  }
+
+  Future<Location?> _getDefaultLocationPopup(context) {
+    return showDialog(
+        useRootNavigator: false,
+        context: context,
+        builder: (BuildContext ctx) {
+          return AlertDialog(
+            title: Text('Item Default Location'),
+            content: Text('Would you like to set a default location?'),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('No'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.of(context)
+                      .pop(await getLocationSelection(context));
+                },
+                child: Text('Yes'),
               ),
             ],
           );

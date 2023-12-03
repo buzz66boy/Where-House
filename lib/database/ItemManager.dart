@@ -88,9 +88,11 @@ class ItemManager {
 
       bool success = await newItem.setItem();
       if (success) {
-        print('made it here');
-        await updateItemCount(locationUID, newItem.uid, 1);
-        print(newItem.uid);
+        // print('made it here');
+        if (locationUID >= 0) {
+          await updateItemCount(locationUID, newItem.uid, 1);
+        }
+        // print(newItem.uid);
         Item addedItem = await Item.getItem(newItem.uid);
 
         return addedItem;
@@ -154,8 +156,32 @@ class ItemManager {
     }
   }
 
+  Future<bool> deleteLocationFromLocationItemCount(int locationUid) async {
+    database = await openDatabase('WhereHouse.db');
+    int count = await database.delete(
+      'LocationItemCount',
+      where: 'locationUid = ?',
+      whereArgs: [locationUid],
+    );
+    return true;
+  }
+
+  Future<bool> deleteItemFromLocationItemCount(int itemUid) async {
+    database = await openDatabase('WhereHouse.db');
+    int count = await database.delete(
+      'LocationItemCount',
+      where: 'itemUid = ?',
+      whereArgs: [itemUid],
+    );
+    return true;
+  }
+
   Future<bool> updateItemCount(
       int locationUid, int itemUid, int itemCount) async {
+    if (locationUid < 0) {
+      throw FormatException(
+          "Trying to update quantity for negative location id");
+    }
     try {
       database = await openDatabase('WhereHouse.db');
       // Check if the key pair already exists
@@ -167,13 +193,21 @@ class ItemManager {
       );
 
       if (result.isNotEmpty) {
-        await database.update(
-          'LocationItemCount',
-          {'itemCount': itemCount},
-          where: 'locationUid = ? AND itemUid = ?',
-          whereArgs: [locationUid, itemUid],
-        );
-      } else {
+        if (itemCount > 0) {
+          await database.update(
+            'LocationItemCount',
+            {'itemCount': itemCount},
+            where: 'locationUid = ? AND itemUid = ?',
+            whereArgs: [locationUid, itemUid],
+          );
+        } else {
+          await database.delete(
+            'LocationItemCount',
+            where: 'locationUid = ? AND itemUid = ?',
+            whereArgs: [locationUid, itemUid],
+          );
+        }
+      } else if (itemCount > 0) {
         await database.insert(
           'LocationItemCount',
           {

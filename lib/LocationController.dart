@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wherehouse/Item_Management/Controllers/item_controller.dart';
 import 'package:wherehouse/database/Location.dart';
 import 'package:wherehouse/database/LocationManager.dart';
 import 'LocationView.dart'; // I'm importing the LocationView widget here.
@@ -144,7 +145,16 @@ class LocationController {
         uid: uid, name: name, defaultLocation: defLoc);
   }
 
-  Future<bool> deleteLocation(int uid) {
+  Future<bool> deleteLocation(int uid) async {
+    ItemController itemController = ItemControllerHolder.getInstance();
+    Map<int, int> itemQuants = await itemController.getLocationItems(uid);
+
+    itemQuants.forEach((key, value) {
+      itemQuants[key] = 0;
+    });
+
+    itemController.updateItemLocationQuantities(
+        locUid: uid, uidQuantMap: itemQuants);
     return locationManager.removeLocation(uid);
   }
 }
