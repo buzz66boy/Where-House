@@ -10,7 +10,7 @@ class LocationManager {
   late Database database;
 
   LocationManager() {
-    initializeDatabase();
+    // initializeDatabase();
   }
 
   Future<void> initializeDatabase() async {

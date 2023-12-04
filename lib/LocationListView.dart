@@ -1,6 +1,5 @@
 import 'package:wherehouse/LocationController.dart';
 import 'package:wherehouse/database/Location.dart';
-import 'LocationView.dart';
 import 'package:flutter/material.dart';
 
 // I'm making a LocationListView widget to display a list of Locations.

@@ -9,9 +9,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wherehouse/Item_Management/Controllers/item_controller.dart';
 import 'package:wherehouse/Item_Management/Views/item_list_view.dart';
+import 'package:wherehouse/LocationController.dart';
 
 import 'package:wherehouse/database/Item.dart';
 import 'package:wherehouse/database/ItemManager.dart';
+import 'package:wherehouse/database/LocationManager.dart';
 
 void main() {
   testWidgets('Item List View test', (WidgetTester tester) async {
@@ -30,12 +32,16 @@ void main() {
         locationUID: 0);
 
     ItemManager itemManager = ItemManager();
-    ItemController itemController = ItemController(itemManager: itemManager);
+    LocationManager locationManager = LocationManager();
+    LocationController locationController =
+        LocationController(locationManager: locationManager);
+    ItemController itemController = ItemController(
+        itemManager: itemManager, locationController: locationController);
 
     // Build our app and trigger a frame.
     await tester.pumpWidget(MaterialApp(
         home: ItemListView(
-      itemList: [item, item2],
+      initialItemList: [item, item2],
       itemController: itemController,
       confirmSelect: false,
     )));
