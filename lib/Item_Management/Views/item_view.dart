@@ -218,50 +218,11 @@ class _ItemViewState extends State<ItemView> {
                             return ListTile(
                               leading: IconButton(
                                 icon: Icon(Icons.add_circle),
-                                onPressed: () {
-                                  if (widget.locationQuantities
-                                          .containsKey(location.key) &&
-                                      (widget.locationQuantities[
-                                              location.key] !=
-                                          null)) {
-                                    widget.locationQuantities[location.key] =
-                                        (widget.locationQuantities[location.key]
-                                                as int) +
-                                            1;
-                                    widget.itemController
-                                        .updateItemLocationQuantities(
-                                            itemUid: widget.item.uid,
-                                            uidQuantMap:
-                                                widget.locationQuantities);
-                                    setState(
-                                        () {}); //FIXME: hack for updating UI
-                                  }
-                                },
+                                onPressed: () => _addItemQuantity(location),
                               ),
                               trailing: IconButton(
                                 icon: Icon(Icons.remove_circle),
-                                onPressed: () {
-                                  if (widget.locationQuantities
-                                          .containsKey(location.key) &&
-                                      (widget.locationQuantities[
-                                              location.key] !=
-                                          null) &&
-                                      (widget.locationQuantities[location.key]
-                                              as int >
-                                          0)) {
-                                    widget.locationQuantities[location.key] =
-                                        (widget.locationQuantities[location.key]
-                                                as int) -
-                                            1;
-                                    widget.itemController
-                                        .updateItemLocationQuantities(
-                                            itemUid: widget.item.uid,
-                                            uidQuantMap:
-                                                widget.locationQuantities);
-                                    setState(
-                                        () {}); //FIXME: hack for updating UI
-                                  }
-                                },
+                                onPressed: () => _removeItemQuantity(location),
                               ),
                               title: Text(
                                   'Location: ${widget.locationNames[location.key]}'), //FIXME: get location name
@@ -320,6 +281,29 @@ class _ItemViewState extends State<ItemView> {
             ),
           );
     return scaffold;
+  }
+
+  void _removeItemQuantity(location) {
+    if (widget.locationQuantities.containsKey(location.key) &&
+        (widget.locationQuantities[location.key] != null) &&
+        (widget.locationQuantities[location.key] as int > 0)) {
+      widget.locationQuantities[location.key] =
+          (widget.locationQuantities[location.key] as int) - 1;
+      widget.itemController.updateItemLocationQuantities(
+          itemUid: widget.item.uid, uidQuantMap: widget.locationQuantities);
+      setState(() {}); //FIXME: hack for updating UI
+    }
+  }
+
+  void _addItemQuantity(location) {
+    if (widget.locationQuantities.containsKey(location.key) &&
+        (widget.locationQuantities[location.key] != null)) {
+      widget.locationQuantities[location.key] =
+          (widget.locationQuantities[location.key] as int) + 1;
+      widget.itemController.updateItemLocationQuantities(
+          itemUid: widget.item.uid, uidQuantMap: widget.locationQuantities);
+      setState(() {}); //FIXME: hack for updating UI
+    }
   }
 
   void _deleteItemDialog(context) {
