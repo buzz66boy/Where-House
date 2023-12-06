@@ -6,46 +6,45 @@ import 'dart:convert';
 import 'User.dart';
 //import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-
 class UserManager {
   late Database database;
 
   UserManager() {
     initializeDatabase();
+    // databaseFactory.deleteDatabase("WhereHouse.db");
   }
 
   Future<void> initializeDatabase() async {
-
     String databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'WhereHouse.db');
 
     database = await openDatabase(
       path,
       onCreate: (db, version) async {
-
         await db.execute(
           'CREATE TABLE IF NOT EXISTS Item('
-              'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
-              'name TEXT, '
-              'description TEXT, '
-              'barcodes TEXT, '
-              'locationUID INTEGER, '
-              'FOREIGN KEY (locationUID) REFERENCES Location(uid)'
-              ')',
+          'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
+          'name TEXT, '
+          'description TEXT, '
+          'barcodes TEXT, '
+          'locationUID INTEGER, '
+          'FOREIGN KEY (locationUID) REFERENCES Location(uid)'
+          ')',
         );
         await db.execute(
           'CREATE TABLE IF NOT EXISTS Location('
-              'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
-              'name TEXT, '
-              'defaultLocation INTEGER'
-              ')',
+          'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
+          'name TEXT, '
+          'defaultLocation INTEGER'
+          ')',
         );
         await db.execute(
           'CREATE TABLE IF NOT EXISTS User('
-              'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
-              'name TEXT, '
-              'checkedOutItems TEXT'
-              ')',
+          'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
+          'name TEXT, '
+          'password CHAR(60), '
+          'checkedOutItems TEXT'
+          ')',
         );
         /*await db.execute(
           'CREATE TABLE IF NOT EXISTS Transaction('
@@ -60,29 +59,30 @@ class UserManager {
         );*/
         await db.execute(
           'CREATE TABLE IF NOT EXISTS LocationItemCount('
-              'locationUid INTEGER, '
-              'itemUid INTEGER, '
-              'itemCount INTEGER, '
-              'PRIMARY KEY (locationUid, itemUid), '
-              'FOREIGN KEY (locationUid) REFERENCES Location(uid), '
-              'FOREIGN KEY (itemUid) REFERENCES Item(uid)'
-              ')',
+          'locationUid INTEGER, '
+          'itemUid INTEGER, '
+          'itemCount INTEGER, '
+          'PRIMARY KEY (locationUid, itemUid), '
+          'FOREIGN KEY (locationUid) REFERENCES Location(uid), '
+          'FOREIGN KEY (itemUid) REFERENCES Item(uid)'
+          ')',
         );
       },
       version: 1,
     );
-
   }
 
   Future<bool> addUser(
-      String name,
-      List<dynamic> checkedOutItems,
-      ) async {
+    String name,
+    String password,
+    List<dynamic> checkedOutItems,
+  ) async {
     try {
       database = await openDatabase('WhereHouse.db');
 
       User newUser = User(
         name: name,
+        password: password,
         checkedOutItems: checkedOutItems,
       );
 
@@ -98,7 +98,8 @@ class UserManager {
   Future<bool> removeUser(int uid) async {
     try {
       database = await openDatabase('WhereHouse.db');
-      int rowsDeleted = await database.delete('User', where: 'uid = ?', whereArgs: [uid]);
+      int rowsDeleted =
+          await database.delete('User', where: 'uid = ?', whereArgs: [uid]);
       return rowsDeleted > 0;
     } catch (e) {
       print(e);
@@ -109,6 +110,7 @@ class UserManager {
   Future<User?> editUser({
     required int uid,
     String? name,
+    required String password,
     List<int>? checkedOutItems,
   }) async {
     User? existingUser;
@@ -119,7 +121,9 @@ class UserManager {
 
       if (existingUser.uid == uid) {
         if (name != null) existingUser.name = name;
-        if (checkedOutItems != null) existingUser.checkedOutItems = checkedOutItems;
+        if (checkedOutItems != null) {
+          existingUser.checkedOutItems = checkedOutItems;
+        }
 
         await existingUser.setUser();
         return existingUser;
@@ -151,6 +155,7 @@ class UserManager {
         return User(
           uid: user['uid'],
           name: user['name'],
+          password: user['password'],
           checkedOutItems: jsonDecode(user['checkedOutItems']),
         );
       }).toList();
@@ -159,7 +164,6 @@ class UserManager {
       return [];
     }
   }
-
 
   Future<bool> exportUsers(String outfileLocation) async {
     try {
@@ -181,11 +185,13 @@ class UserManager {
     try {
       String fileContent = await File(infileLocation).readAsString();
 
-      List<Map<String, dynamic>> userMaps = List<Map<String, dynamic>>.from(jsonDecode(fileContent));
-      List<User> users = userMaps.map((userMap) => User.fromMap(userMap)).toList();
+      List<Map<String, dynamic>> userMaps =
+          List<Map<String, dynamic>>.from(jsonDecode(fileContent));
+      List<User> users =
+          userMaps.map((userMap) => User.fromMap(userMap)).toList();
 
       for (User user in users) {
-        await addUser(user.name, user.checkedOutItems);
+        await addUser(user.name, user.passwordHash, user.checkedOutItems);
       }
 
       return true;
@@ -194,9 +200,4 @@ class UserManager {
       return false;
     }
   }
-
-
 }
-
-
-

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wherehouse/home_screen.dart';
 import 'package:video_player/video_player.dart';
+import 'package:wherehouse/database/User.dart';
 
 class BackgroundVideo extends StatefulWidget {
   @override
@@ -9,6 +10,23 @@ class BackgroundVideo extends StatefulWidget {
 
 class _BackgroundVideoState extends State<BackgroundVideo> {
   late VideoPlayerController _controller;
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  Future<void> signIn(BuildContext context) async {
+    String username = _usernameController.text.trim();
+    String password = _passwordController.text.trim();
+
+    User? user = await User.getUserLogin(username, password);
+    print(user);
+    // If user is valid, navigate to the home page
+    if (user != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MyApp(user: user)),
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -60,43 +78,42 @@ class _BackgroundVideoState extends State<BackgroundVideo> {
                   child: Container(
                     width: 200, // Set the desired width
                     color: Colors.white, // Set the background color
-                    child: const Center(
+                    child: Center(
                       child: TextField(
-                        decoration: InputDecoration(
+                        controller: _usernameController,
+                        decoration: const InputDecoration(
                           labelText: 'Username',
                         ),
                       ),
                     ),
                   ),
                 ),
-                // const SizedBox(
-                //     height: 16), // Add some spacing between the text fields
-                // // Add a password text field
-                // Padding(
-                //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                //   child: Container(
-                //     width: 200, // Set the desired width
-                //     color: Colors.white, // Set the background color
-                //     child: const Center(
-                //       child: TextField(
-                //         decoration: InputDecoration(
-                //           labelText: 'Password',
-                //         ),
-                //         obscureText: true, // To hide the entered password
-                //       ),
-                //     ),
-                //   ),
-                // ),
+                const SizedBox(
+                    height: 16), // Add some spacing between the text fields
+                // Add a password text field
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Container(
+                    width: 200, // Set the desired width
+                    color: Colors.white, // Set the background color
+                    child: Center(
+                      child: TextField(
+                        controller: _passwordController,
+                        decoration: const InputDecoration(
+                          labelText: 'Password',
+                        ),
+                        obscureText: true, // To hide the entered password
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 30),
                 ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => MyApp()),
-                      );
+                      signIn(context);
                     },
                     child: const Text('SIGN IN')),
                 // const SizedBox(height: 15),

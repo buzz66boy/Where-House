@@ -11,7 +11,8 @@ class UserController {
 
   Future<bool> addUser(User user) async {
     try {
-      return await userManager.addUser(user.name, user.checkedOutItems);
+      return await userManager.addUser(
+          user.name, user.passwordHash, user.checkedOutItems);
     } catch (error) {
       if (kDebugMode) {
         print('Error adding user: $error');
@@ -24,10 +25,14 @@ class UserController {
   Future<User?> editUser(
     int uid,
     String name,
+    String password,
     List<int> checkOutItems,
   ) async {
     return userManager.editUser(
-        uid: uid, name: name, checkedOutItems: checkOutItems);
+        uid: uid,
+        name: name,
+        password: password,
+        checkedOutItems: checkOutItems);
   }
 
   /// User Controller remove User Contract
