@@ -14,6 +14,7 @@ import 'package:wherehouse/database/UserManager.dart';
 import 'package:wherehouse/login_screen.dart';
 import 'package:wherehouse/user_management/UserController.dart';
 import 'package:wherehouse/user_management/UserListView.dart';
+import 'package:wherehouse/database/TransactionView.dart'; //added transaction view class
 
 class MyApp extends StatelessWidget {
   late ItemManager itemManager;
@@ -222,8 +223,18 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Text("Manage User")),
             ElevatedButton(
                 onPressed: _navigateToUserList, child: Text("Manage Users")),
+            /*Added transaction view button*/
             ElevatedButton(
-                onPressed: () {}, child: Text("Transaction History")),
+                onPressed: () {
+                  // Navigate to transaction history page
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TransactionView(),
+                      ));
+                },
+                child: Text("Transaction History")),
+            /******/
             ElevatedButton(
                 onPressed: _navigateToSettings, child: const Text("Settings")),
             ElevatedButton(
