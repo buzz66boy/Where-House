@@ -26,7 +26,7 @@ class UserController {
     int uid,
     String name,
     String password,
-    List<int> checkOutItems,
+    List<String> checkOutItems,
   ) async {
     return userManager.editUser(
         uid: uid,
@@ -109,7 +109,7 @@ class UserController {
 //   Future<User?> editUser(
 //       int uid,
 //       String name,
-//       List<int> checkOutItems,
+//       List<String> checkOutItems,
 //       ) async{
 //     return userManager.editUser(uid:uid,name: name,checkedOutItems: checkOutItems);
 

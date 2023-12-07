@@ -117,7 +117,9 @@ class MyHomePage extends StatefulWidget {
     locationManager = LocationManager();
     locationController = LocationController(locationManager: locationManager);
     itemController = ItemControllerHolder.instantiateItemController(
-        locationController: locationController, itemManager: itemManager);
+        locationController: locationController,
+        itemManager: itemManager,
+        user: user);
     scannerController = ScannerController(itemController: itemController);
   }
 

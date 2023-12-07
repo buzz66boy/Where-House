@@ -3,11 +3,18 @@ import 'package:wherehouse/Item_Management/Views/check_out_view.dart';
 import 'package:wherehouse/Item_Management/Views/check_in_view.dart';
 import 'package:wherehouse/database/Item.dart';
 import 'package:wherehouse/Item_Management/Controllers/item_controller.dart';
+import 'package:wherehouse/database/User.dart';
+import 'package:wherehouse/database/UserManager.dart';
+import 'package:wherehouse/home_screen.dart';
 
 class LendingController {
   final ItemController itemController;
+  final User user;
+  late UserManager userManager;
 
-  LendingController({required this.itemController});
+  LendingController({required this.itemController, required this.user}) {
+    userManager = UserManager();
+  }
 
   void checkOut(context, Item item) async {
     Map<int, int> locQuant =
@@ -42,11 +49,14 @@ class LendingController {
 
     // Ensure the selectedLocation exists in the locQuant map
     if (locQuant.containsKey(selectedLocation)) {
-      int currentQuantity = locQuant[selectedLocation] ?? 0;
-      int newQuantity = currentQuantity - selectedQuantity;
+      int availableQuantity = locQuant[selectedLocation] ?? 0;
 
-      // Ensure the new quantity is not negative
-      newQuantity = newQuantity < 0 ? 0 : newQuantity;
+      // Ensure selectedQuantity does not exceed availableQuantity
+      selectedQuantity = selectedQuantity > availableQuantity
+          ? availableQuantity
+          : selectedQuantity;
+
+      int newQuantity = availableQuantity - selectedQuantity;
 
       // Update locQuant with the new quantity for the selectedLocation
       locQuant[selectedLocation] = newQuantity;
@@ -55,35 +65,80 @@ class LendingController {
       itemController.updateItemLocationQuantities(
           itemUid: item.uid, uidQuantMap: locQuant);
 
+      for (int i = 0; i < selectedQuantity; i++) {
+        user.checkedOutItems.add(item.name);
+      }
+      userManager.saveUser(user);
+
       // Display an alert with the checkout message
       showCheckoutAlert(context, selectedQuantity);
-    }
 
-    Navigator.pop(context);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MyApp(user: user)),
+      );
+    } else {
+      showAlert(context, 'Invalid Location', 'Location Does Not Exist');
+    }
   }
 
   void checkInLogic(
       context, Item item, int selectedLocation, int selectedQuantity) async {
     Map<int, int> locQuant =
         await itemController.getItemLocationQuantities(item: item);
-
+    int counter = 0;
     // Ensure the selectedLocation exists in the locQuant map
-    if (locQuant.containsKey(selectedLocation)) {
-      int currentQuantity = locQuant[selectedLocation] ?? 0;
-      int newQuantity = currentQuantity + selectedQuantity;
 
-      // Update locQuant with the new quantity for the selectedLocation
-      locQuant[selectedLocation] = newQuantity;
+    if (user.checkedOutItems.contains(item.name)) {
+      for (int i = 0; i < selectedQuantity; i++) {
+        if (user.checkedOutItems.contains(item.name)) {
+          user.checkedOutItems.remove(item.name);
+          counter++;
+        }
+      }
+      if (locQuant.containsKey(selectedLocation)) {
+        int currentQuantity = locQuant[selectedLocation] ?? 0;
+        int newQuantity = currentQuantity + counter;
 
-      // Update the item's location quantities
-      itemController.updateItemLocationQuantities(
-          itemUid: item.uid, uidQuantMap: locQuant);
+        // Update locQuant with the new quantity for the selectedLocation
+        locQuant[selectedLocation] = newQuantity;
 
-      // Display an alert with the checkout message
-      showCheckInAlert(context, selectedQuantity);
+        // Update the item's location quantities
+        itemController.updateItemLocationQuantities(
+            itemUid: item.uid, uidQuantMap: locQuant);
+        userManager.saveUser(user);
+        // Display an alert with the checkout message
+        showCheckInAlert(context, counter);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MyApp(user: user)),
+        );
+      }
+    } else {
+      showAlert(context, 'Check In Not Available',
+          'You do not have any quantity checked out of this item.');
+      Navigator.pop(context);
     }
+  }
 
-    Navigator.pop(context);
+  void showAlert(BuildContext context, String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void showCheckoutAlert(BuildContext context, int checkedOutQuantity) {
@@ -92,7 +147,8 @@ class LendingController {
       builder: (BuildContext ctx) {
         return AlertDialog(
           title: Text('Checkout Successful'),
-          content: Text('$checkedOutQuantity items checked out.'),
+          content:
+              Text('${user.name} has checked out $checkedOutQuantity items.'),
           actions: [
             ElevatedButton(
               onPressed: () {

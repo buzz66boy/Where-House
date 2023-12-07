@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wherehouse/database/UserManager.dart';
 import '../../database/User.dart';
 import 'UserController.dart';
 
@@ -19,18 +20,22 @@ class UserView extends StatefulWidget {
 class _UserViewState extends State<UserView> {
   _UserViewState();
   late User currentUser;
+  late UserManager userManager;
   final _uidController = TextEditingController();
   final _nameController = TextEditingController();
   final _checkOutItemsController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     currentUser = widget.user;
+    userManager = UserManager();
     _uidController.text = widget.user.uid.toString();
     _nameController.text = widget.user.name;
     _checkOutItemsController.text =
         _checkOutItemsToString(widget.user.checkedOutItems);
+    _passwordController.text = widget.user.password;
   }
 
   String _checkOutItemsToString(List<dynamic> items) {
@@ -42,62 +47,44 @@ class _UserViewState extends State<UserView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('User Information'),
+      appBar: AppBar(
+        title: const Text('User Information'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _showUserInfo = !_showUserInfo;
+                });
+              },
+              child: const Text("View User"),
+            ),
+            ElevatedButton(
+              onPressed: () => _editUserInfo(context),
+              child: const Text("Edit User"),
+            ),
+            if (_showUserInfo) displayUserInfo(),
+          ],
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _showUserInfo = !_showUserInfo;
-                  });
-                },
-                child: const Text("View User"),
-              ),
-              ElevatedButton(
-                  onPressed: () => _editUserInfo(context),
-                  child: const Text("Edit User")),
-              if (_showUserInfo) displayUserInfo(),
-            ],
-          ),
-        )
-
-        // SingleChildScrollView(
-        //   child: Column(
-        //     mainAxisAlignment: MainAxisAlignment.end,
-        //     crossAxisAlignment: CrossAxisAlignment.end,
-        //     children: <Widget>[
-        //       ElevatedButton(
-        //           onPressed: () => _editUserInfo(context),
-        //           child: const Text("Edit User")
-        //       ),
-        //
-        //       Padding(
-        //         padding: const EdgeInsets.all(40.0),
-        //         child: displayUserInfo(),
-        //       ),
-        //     ],
-        //   ),
-        // ),
-        );
+      ),
+    );
   }
 
-  /// Contract 1: Display User Information
   displayUserInfo() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('User Id: ${currentUser.uid}'),
         Text('Name: ${currentUser.name}'),
+        // Text('Password: ${currentUser.password}'),
         Text('Checked Out items: ${currentUser.checkedOutItems}'),
       ],
     );
   }
 
-  /// Private Responsibility: Edit User Information
   void _editUserInfo(BuildContext context) {
     showDialog(
       context: context,
@@ -121,9 +108,15 @@ class _UserViewState extends State<UserView> {
                   ),
                 ),
                 TextFormField(
-                  controller:
-                      _checkOutItemsController, // Use check out items controller
-                  decoration: InputDecoration(
+                  controller: _passwordController, // Add this line
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                  ),
+                  obscureText: true,
+                ),
+                TextFormField(
+                  controller: _checkOutItemsController,
+                  decoration: const InputDecoration(
                     labelText: 'Checked Out Items',
                   ),
                 ),
@@ -135,14 +128,17 @@ class _UserViewState extends State<UserView> {
               child: const Text('Save'),
               onPressed: () {
                 setState(() {
-                  widget.user.uid = int.tryParse(_uidController.text) ??
-                      widget.user.uid; // Parse UID from text
+                  widget.user.uid =
+                      int.tryParse(_uidController.text) ?? widget.user.uid;
                   widget.user.name = _nameController.text;
+                  widget.user.password =
+                      _passwordController.text; // Update password
                   widget.user.checkedOutItems = _checkOutItemsController.text
                       .split(',')
                       .map((item) => item.trim())
                       .toList();
                 });
+                userManager.saveUser(widget.user);
                 Navigator.of(context).pop();
               },
             ),
