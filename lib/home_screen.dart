@@ -11,6 +11,8 @@ import 'package:wherehouse/database/LocationManager.dart';
 import 'package:wherehouse/database/User.dart';
 import 'package:wherehouse/database/UserManager.dart';
 import 'package:wherehouse/user_management/UserController.dart';
+import 'package:wherehouse/database/TransactionView.dart'; //added transaction view class
+import 'package:wherehouse/database/AccountingController.dart'; //added accounting controllerclass
 
 class MyApp extends StatelessWidget {
   late ItemManager itemManager;
@@ -68,6 +70,7 @@ class MyHomePage extends StatefulWidget {
   late ScannerController scannerController;
   late LocationManager locationManager;
   late LocationController locationController;
+  //late AccountingController accountingController; //added for transaction view
   late Item item = Item(
       uid: 10,
       name: 'Copier Toner',
@@ -192,8 +195,18 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: Text("Manage User")),
             ElevatedButton(onPressed: () async {}, child: Text("Manage Users")),
+            // Nav to transaction history
             ElevatedButton(
-                onPressed: () {}, child: Text("Transaction History")),
+                onPressed: () {
+                  // Navigate to transaction history page
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TransactionView(),
+                      ));
+                },
+                child: Text("Transaction History")),
+            //
             ElevatedButton(onPressed: () {}, child: Text("Settings")),
             ElevatedButton(
                 onPressed: () async {
