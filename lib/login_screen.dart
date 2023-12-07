@@ -23,7 +23,7 @@ class _BackgroundVideoState extends State<BackgroundVideo> {
     if (user != null) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MyApp(user: user)),
+        MaterialPageRoute(builder: (context) => MyApp()),
       );
     }
   }
@@ -91,29 +91,32 @@ class _BackgroundVideoState extends State<BackgroundVideo> {
                 const SizedBox(
                     height: 16), // Add some spacing between the text fields
                 // Add a password text field
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Container(
-                    width: 200, // Set the desired width
-                    color: Colors.white, // Set the background color
-                    child: Center(
-                      child: TextField(
-                        controller: _passwordController,
-                        decoration: const InputDecoration(
-                          labelText: 'Password',
-                        ),
-                        obscureText: true, // To hide the entered password
-                      ),
-                    ),
-                  ),
-                ),
+                // Padding(
+                //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                //   child: Container(
+                //     width: 200, // Set the desired width
+                //     color: Colors.white, // Set the background color
+                //     child: Center(
+                //       child: TextField(
+                //         controller: _passwordController,
+                //         decoration: const InputDecoration(
+                //           labelText: 'Password',
+                //         ),
+                //         obscureText: true, // To hide the entered password
+                //       ),
+                //     ),
+                //   ),
+                // ),
                 const SizedBox(height: 30),
                 ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     onPressed: () {
-                      signIn(context);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => MyApp()),
+                      );
                     },
                     child: const Text('SIGN IN')),
                 // const SizedBox(height: 15),

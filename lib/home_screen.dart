@@ -16,11 +16,10 @@ class MyApp extends StatelessWidget {
   late ItemManager itemManager;
   late ItemController itemController;
   late ScannerController scannerController;
-  final User user;
 
   /// Added User
 
-  MyApp({super.key, required this.user}) {
+  MyApp({super.key}) {
     // ItemManager itemManager = ItemManager();
     // ItemController itemController = ItemController(itemManager: itemManager);
   }
@@ -54,14 +53,14 @@ class MyApp extends StatelessWidget {
       //   confirmSelect: true,
       // )
 
-      home: MyHomePage(title: 'Where?House Main Menu', user: user),
+      home: MyHomePage(title: 'Where?House Main Menu'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   // User added
-  final User user;
+
   late UserManager userManager = UserManager();
   late UserController userController = UserController(userManager);
 
@@ -78,22 +77,22 @@ class MyHomePage extends StatefulWidget {
       barcodes: ['1234', '4321'],
       // locationQuantities: <int, int>{1: 2, 3: 4},
       locationUID: 1);
-  MyHomePage({super.key, required this.title, required this.user}) {
-    // userManager.initializeDatabase().then((value) async {
-    //   User user = User(
-    //       uid: 1,
-    //       name: "John doe",
-    //       password: "1234567890",
-    //       checkedOutItems: [1, 3]);
-    //   bool tempUser = await userManager.addUser(
-    //       user.name, user.passwordHash, user.checkedOutItems);
-    //   // if (tempUser != null) {
-    //   //   user = tempUser as User;
-    //   // }
-    //   userManager
-    //       .queryUsers('John doe')
-    //       .then((value) => print(value.toString()));
-    // });
+  MyHomePage({super.key, required this.title}) {
+    userManager.initializeDatabase().then((value) async {
+      User user = User(
+          uid: 1,
+          name: "John doe",
+          password: "1234567890",
+          checkedOutItems: [1, 3]);
+      bool tempUser = await userManager.addUser(
+          user.name, user.passwordHash, user.checkedOutItems);
+      // if (tempUser != null) {
+      //   user = tempUser as User;
+      // }
+      userManager
+          .queryUsers('John doe')
+          .then((value) => print(value.toString()));
+    });
     itemManager = ItemManager();
     itemManager.initializeDatabase().then((value) async {
       Item? tempitem = await itemManager.addItem(
@@ -193,8 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Text("Manage Locations")),
             ElevatedButton(
                 onPressed: () async {
-                  widget.userController
-                      .setUserViewActive(context, widget.user.uid);
+                  widget.userController.setUserViewActive(context, 1);
                   print("made it here to users");
                 },
                 child: Text("Manage User")),
