@@ -28,20 +28,6 @@ class Transaction {
       );
 }
 
-// Transaction is also a class in sqflite_api.dart so I am adding it here to remove errors
-// class Transaction {
-//   late int transactionUid;
-//   late int userUid;
-//   late int itemUid;
-//   late int locationUid;
-
-//   Transaction(
-//       {required transactionUid,
-//       required userUid,
-//       required itemUid,
-//       required locationUid});
-// }
-
 class TransactionView extends StatefulWidget {
   @override
   _TransactionViewState createState() => _TransactionViewState();
@@ -57,7 +43,6 @@ class _TransactionViewState extends State<TransactionView> {
   }
 
   Future<List<Transaction>> getTransactionsFromJson() async {
-    // Specify the path to your JSON file
     String filePath = 'lib/database/WhereHouse.json';
 
     try {
@@ -70,31 +55,6 @@ class _TransactionViewState extends State<TransactionView> {
       return jsonData
           .map<Transaction>((json) => Transaction.fromJson(json))
           .toList();
-
-      // // Parse JSON string into a List of Map<String, dynamic>
-      // Map<String, dynamic> jsonData = jsonDecode(jsonString);
-      // var transactionList = <Transaction>[];
-      // // Loop through each map entry in jsonData
-      // jsonData.forEach((key, value) {
-      //   // Access map key and value
-      //   final transactionUid = value['transactionUid'];
-      //   final userUid = value['userUid'];
-      //   final itemUid = value['itemUid'];
-      //   final locationUid = value['locationUid'];
-      //   // ... access other key-value pairs
-
-      //   // Create a new Transaction object
-      //   final transaction = Transaction(
-      //       transactionUid: transactionUid,
-      //       userUid: userUid,
-      //       itemUid: itemUid,
-      //       locationUid: locationUid);
-
-      //   // Add the transaction object to the list
-      //   transactionList.add(transaction);
-      // });
-
-      //return transactionList;
     } catch (e) {
       print('Error reading JSON file: $e');
       final transaction = Transaction(
