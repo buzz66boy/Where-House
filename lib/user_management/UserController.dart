@@ -12,7 +12,7 @@ class UserController {
   Future<bool> addUser(User user) async {
     try {
       return await userManager.addUser(
-          user.name, user.passwordHash, user.checkedOutItems);
+          user.name, user.password, user.checkedOutItems);
     } catch (error) {
       if (kDebugMode) {
         print('Error adding user: $error');

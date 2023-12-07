@@ -86,7 +86,7 @@ class MyHomePage extends StatefulWidget {
     //       password: "1234567890",
     //       checkedOutItems: [1, 3]);
     //   bool tempUser = await userManager.addUser(
-    //       user.name, user.passwordHash, user.checkedOutItems);
+    //       user.name, user.password, user.checkedOutItems);
     //   // if (tempUser != null) {
     //   //   user = tempUser as User;
     //   // }

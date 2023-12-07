@@ -191,7 +191,7 @@ class UserManager {
           userMaps.map((userMap) => User.fromMap(userMap)).toList();
 
       for (User user in users) {
-        await addUser(user.name, user.passwordHash, user.checkedOutItems);
+        await addUser(user.name, user.password, user.checkedOutItems);
       }
 
       return true;

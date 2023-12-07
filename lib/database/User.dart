@@ -6,15 +6,15 @@ import 'package:bcrypt/bcrypt.dart';
 class User {
   late int uid;
   String name;
-  String passwordHash; // Store the hashed password
+  String password; // Store the hashed password
   List<dynamic> checkedOutItems;
 
   User({
     this.uid = -1,
     required this.name,
-    String? password, // Accept plain password during object creation
+    this.password = "", // Accept plain password during object creation
     required this.checkedOutItems,
-  }) : passwordHash = _hashPassword(password!); // Hash the password
+  }); // Hash the password
 
   static String _hashPassword(String password) {
     // Use bcrypt to hash the password
@@ -47,16 +47,16 @@ class User {
     await db.close();
 
     if (results.isNotEmpty) {
-      String storedHash = results[0]['password'];
+      String storedPassword = results[0]['password'];
       print(password);
-      print(storedHash);
-      final bool result = BCrypt.checkpw(password, storedHash);
-      print(result);
-      if (BCrypt.checkpw(password, storedHash)) {
+      print(storedPassword);
+      // final bool result = BCrypt.checkpw(password, storedPassword);
+      // print(result);
+      if (password == storedPassword) {
         return User(
           uid: results[0]['uid'],
           name: results[0]['name'],
-          password: storedHash,
+          password: storedPassword,
           checkedOutItems:
               List<int>.from(jsonDecode(results[0]['checkedOutItems'])),
         );
@@ -101,13 +101,13 @@ class User {
       return {
         'uid': uid,
         'name': name,
-        'password': passwordHash,
+        'password': password,
         'checkedOutItems': jsonEncode(checkedOutItems),
       };
     } else {
       return {
         'name': name,
-        'password': passwordHash,
+        'password': password,
         'checkedOutItems': jsonEncode(checkedOutItems),
       };
     }
@@ -115,6 +115,6 @@ class User {
 
   @override
   String toString() {
-    return 'User{uid: $uid, name: $name, password: $passwordHash, checkedOutItems: $checkedOutItems}';
+    return 'User{uid: $uid, name: $name, password: $password, checkedOutItems: $checkedOutItems}';
   }
 }

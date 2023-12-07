@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wherehouse/create_account.dart';
+import 'package:wherehouse/database/UserManager.dart';
 import 'package:wherehouse/home_screen.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wherehouse/database/User.dart';
@@ -10,6 +12,7 @@ class BackgroundVideo extends StatefulWidget {
 
 class _BackgroundVideoState extends State<BackgroundVideo> {
   late VideoPlayerController _controller;
+  late UserManager userManager;
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -38,6 +41,7 @@ class _BackgroundVideoState extends State<BackgroundVideo> {
 
         setState(() {});
       });
+    userManager = UserManager();
   }
 
   @override
@@ -116,16 +120,21 @@ class _BackgroundVideoState extends State<BackgroundVideo> {
                       signIn(context);
                     },
                     child: const Text('SIGN IN')),
-                // const SizedBox(height: 15),
-                // ElevatedButton(
-                //   style: ElevatedButton.styleFrom(
-                //     padding: EdgeInsets.symmetric(vertical: 14),
-                //   ),
-                //   onPressed: () {
-                //     // Handle sign-in logic here
-                //   },
-                //   child: const Text('CREATE'),
-                // ),
+                const SizedBox(height: 15),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () {
+                    // Handle sign-in logic here
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                CreateView(userManager: userManager)));
+                  },
+                  child: const Text('CREATE'),
+                ),
               ],
             ),
           ),
