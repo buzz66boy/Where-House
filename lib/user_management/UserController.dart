@@ -12,7 +12,7 @@ class UserController {
   Future<bool> addUser(User user) async {
     try {
       /// added user.uid to search.
-      return await userManager.addUser(user.uid,
+      return await userManager.addUser(
           user.name, user.password, user.checkedOutItems);
     } catch (error) {
       if (kDebugMode) {
@@ -54,14 +54,13 @@ class UserController {
 
   void setUserViewActive(BuildContext context, int userUid) async {
     try {
-      User user = await User.getUser(userUid);  // Added await here
+      User user = await User.getUser(userUid); // Added await here
       if (user != null) {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => UserView(user: user, userController: this)
-            )
-        );
+                builder: (context) =>
+                    UserView(user: user, userController: this)));
       } else {
         if (kDebugMode) {
           print('User not found for id: $userUid');
@@ -74,7 +73,6 @@ class UserController {
     }
   }
 
-
   Future<List<User>> getUsers([String query = '']) async {
     try {
       return await userManager.queryUsers(query);
@@ -86,4 +84,3 @@ class UserController {
     }
   }
 }
-

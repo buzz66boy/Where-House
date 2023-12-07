@@ -82,22 +82,17 @@ class MyHomePage extends StatefulWidget {
       //locationQuantities: <int, int>{1: 2, 3: 4},
       locationUID: 1);
   MyHomePage({super.key, required this.title, required this.user}) {
-    userManager.initializeDatabase().then((value) async {
-      User user = User(
-          uid: 1,
-          name: "bob",
-          password: "password",
-          checkedOutItems: [1, 3]);
-      bool tempUser = await userManager.addUser(user.uid,user.name,user.password,user.checkedOutItems);
-      // bool tempUser = await userManager.addUser(
-      //     user.name, user.password, user.checkedOutItems);
-      // if (tempUser != null) {
-      //   user = tempUser as User;
-      // }
-      userManager
-          .queryUsers('bob')
-          .then((value) => print(value.toString()));
-    });
+    // userManager.initializeDatabase().then((value) async {
+    //   User user = User(
+    //       uid: 1, name: "bob", password: "password", checkedOutItems: [1, 3]);
+    //   // bool tempUser = await userManager.addUser(user.uid,user.name,user.password,user.checkedOutItems);
+    //   // bool tempUser = await userManager.addUser(
+    //   //     user.name, user.password, user.checkedOutItems);
+    //   // if (tempUser != null) {
+    //   //   user = tempUser as User;
+    //   // }
+    //   userManager.queryUsers('bob').then((value) => print(value.toString()));
+    // });
     itemManager = ItemManager();
     itemManager.initializeDatabase().then((value) async {
       Item? tempitem = await itemManager.addItem(
@@ -142,9 +137,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   void _navigateToUserList() {
-
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -161,6 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -227,16 +221,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: Text("Manage User")),
             ElevatedButton(
-                onPressed: _navigateToUserList,
-                child: Text("Manage Users")
-            ),
-
+                onPressed: _navigateToUserList, child: Text("Manage Users")),
             ElevatedButton(
                 onPressed: () {}, child: Text("Transaction History")),
             ElevatedButton(
-                onPressed: _navigateToSettings,
-                child: const Text("Settings")
-            ),
+                onPressed: _navigateToSettings, child: const Text("Settings")),
             ElevatedButton(
                 onPressed: () async {
                   widget.itemController.itemScanned(context, '5555');
@@ -287,6 +276,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
 class SettingsPage extends StatefulWidget {
   SettingsPage({Key? key, this.title}) : super(key: key);
   final String? title;
@@ -333,7 +323,6 @@ class _SettingsPageState extends State<SettingsPage> {
                             },
                             child: const Text('Spanish'),
                           ),
-
                         ],
                       );
                     },
@@ -346,7 +335,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   });
                 },
               ),
-
               SettingsTile.switchTile(
                 initialValue: true,
                 title: const Text('Use System Theme'),
@@ -360,9 +348,7 @@ class _SettingsPageState extends State<SettingsPage> {
               SettingsTile(
                 title: const Text('Wi-Fi'),
                 leading: const Icon(Icons.wifi),
-                onPressed: (BuildContext context) {
-
-                },
+                onPressed: (BuildContext context) {},
               ),
               SettingsTile(
                 title: const Text('Delete Account'),
@@ -373,7 +359,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     builder: (BuildContext context) {
                       return AlertDialog(
                         title: const Text('Delete Account'),
-                        content: const Text('Are you sure you want to delete your account? This cannot be undone.'),
+                        content: const Text(
+                            'Are you sure you want to delete your account? This cannot be undone.'),
                         actions: <Widget>[
                           TextButton(
                             child: const Text('Cancel'),
@@ -382,7 +369,6 @@ class _SettingsPageState extends State<SettingsPage> {
                           TextButton(
                             child: const Text('Delete'),
                             onPressed: () {
-
                               Navigator.of(context).pop();
                             },
                           ),
@@ -392,12 +378,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   );
                 },
               ),
-
-
             ],
           ),
           SettingsSection(
-
             title: const Text('Security Settings'),
             tiles: [
               SettingsTile(
@@ -410,7 +393,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 initialValue: true,
                 title: const Text('Use fingerprint'),
                 leading: const Icon(Icons.fingerprint),
-
                 onToggle: (value) {},
               ),
             ],
@@ -420,5 +402,3 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 }
-
-
