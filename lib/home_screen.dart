@@ -62,6 +62,7 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   // User added
+
   late UserManager userManager = UserManager();
   late UserController userController = UserController(userManager);
 
@@ -81,9 +82,13 @@ class MyHomePage extends StatefulWidget {
       locationUID: 1);
   MyHomePage({super.key, required this.title}) {
     userManager.initializeDatabase().then((value) async {
-      User user = User(uid: 1, name: "John doe", checkedOutItems: [1, 3]);
-      bool tempUser =
-          await userManager.addUser(user.name, user.checkedOutItems);
+      User user = User(
+          uid: 1,
+          name: "John doe",
+          password: "1234567890",
+          checkedOutItems: [1, 3]);
+      bool tempUser = await userManager.addUser(
+          user.name, user.passwordHash, user.checkedOutItems);
       // if (tempUser != null) {
       //   user = tempUser as User;
       // }
