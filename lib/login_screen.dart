@@ -28,6 +28,8 @@ class _BackgroundVideoState extends State<BackgroundVideo> {
         context,
         MaterialPageRoute(builder: (context) => MyApp(user: user)),
       );
+    } else {
+      showCheckoutAlert(context);
     }
   }
 
@@ -42,6 +44,26 @@ class _BackgroundVideoState extends State<BackgroundVideo> {
         setState(() {});
       });
     userManager = UserManager();
+  }
+
+  void showCheckoutAlert(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: Text('Unsuccessful Login'),
+          content: Text('Incorrect Username or password'),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

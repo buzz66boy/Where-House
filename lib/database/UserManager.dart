@@ -72,6 +72,51 @@ class UserManager {
     );
   }
 
+  Future<bool> saveUser(User user) async {
+    try {
+      database = await openDatabase('WhereHouse.db');
+
+      // Convert checkedOutItems to JSON before storing in the database
+      String checkedOutItemsJson = jsonEncode(user.checkedOutItems);
+
+      // Check if the user already exists in the database
+      List<Map> existingUsers = await database.query(
+        'User',
+        where: 'uid = ?',
+        whereArgs: [user.uid],
+      );
+
+      if (existingUsers.isNotEmpty) {
+        // User exists, update the existing record
+        await database.update(
+          'User',
+          {
+            'name': user.name,
+            'password': user.password,
+            'checkedOutItems': checkedOutItemsJson,
+          },
+          where: 'uid = ?',
+          whereArgs: [user.uid],
+        );
+      } else {
+        // User doesn't exist, insert a new record
+        await database.insert(
+          'User',
+          {
+            'name': user.name,
+            'password': user.password,
+            'checkedOutItems': checkedOutItemsJson,
+          },
+        );
+      }
+
+      return true;
+    } catch (e) {
+      print('Error saving user: $e');
+      return false;
+    }
+  }
+
   Future<bool> addUser(
     String name,
     String password,
@@ -111,7 +156,7 @@ class UserManager {
     required int uid,
     String? name,
     required String password,
-    List<int>? checkedOutItems,
+    List<String>? checkedOutItems,
   }) async {
     User? existingUser;
 

@@ -31,8 +31,9 @@ class User {
       return User(
         uid: results[0]['uid'],
         name: results[0]['name'],
+        password: results[0]['password'],
         checkedOutItems:
-            List<int>.from(jsonDecode(results[0]['checkedOutItems'])),
+            List<String>.from(jsonDecode(results[0]['checkedOutItems'])),
       );
     } else {
       throw Exception("User not found in the database");
@@ -58,7 +59,7 @@ class User {
           name: results[0]['name'],
           password: storedPassword,
           checkedOutItems:
-              List<int>.from(jsonDecode(results[0]['checkedOutItems'])),
+              List<String>.from(jsonDecode(results[0]['checkedOutItems'])),
         );
       } else {
         print("wrong password");
@@ -92,7 +93,7 @@ class User {
     return User(
       name: map['name'],
       password: map['password'],
-      checkedOutItems: List<int>.from(jsonDecode(map['checkedOutItems'])),
+      checkedOutItems: List<String>.from(jsonDecode(map['checkedOutItems'])),
     );
   }
 

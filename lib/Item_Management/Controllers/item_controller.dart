@@ -6,14 +6,17 @@ import 'package:wherehouse/LocationController.dart';
 import 'package:wherehouse/database/Item.dart';
 import 'package:wherehouse/database/ItemManager.dart';
 import 'package:wherehouse/database/Location.dart';
+import 'package:wherehouse/database/User.dart';
 
 class ItemControllerHolder {
   static late ItemController itemController;
 
   static ItemController instantiateItemController(
-      {required locationController, required itemManager}) {
+      {required locationController, required itemManager, required user}) {
     itemController = ItemController(
-        locationController: locationController, itemManager: itemManager);
+        locationController: locationController,
+        itemManager: itemManager,
+        user: user);
     return itemController;
   }
 
@@ -25,11 +28,14 @@ class ItemControllerHolder {
 class ItemController {
   final ItemManager itemManager;
   final LocationController locationController;
+  final User user;
   late LendingController lendingController;
 
   ItemController(
-      {required this.locationController, required this.itemManager}) {
-    lendingController = LendingController(itemController: this);
+      {required this.locationController,
+      required this.itemManager,
+      required this.user}) {
+    lendingController = LendingController(itemController: this, user: user);
   }
 
   Future<Item?> getItemSelection(context, List<Item> ilist) async {
