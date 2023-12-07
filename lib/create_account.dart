@@ -16,6 +16,26 @@ class _CreateViewState extends State<CreateView> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  void showAlert(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: Text('New Account'),
+          content: Text('Account has been created.'),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,13 +69,13 @@ class _CreateViewState extends State<CreateView> {
                         user.name, user.password, user.checkedOutItems);
                   });
                   Navigator.pop(context);
+                  showAlert(context);
                 },
                 child: const Text('Create'),
               ),
               const SizedBox(height: 5),
               ElevatedButton(
                 onPressed: () {
-                  // Call the lending controller to handle the check-out process
                   Navigator.pop(context);
                 },
                 child: const Text('Cancel'),
