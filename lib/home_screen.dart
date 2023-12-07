@@ -12,7 +12,7 @@ import 'package:wherehouse/database/User.dart';
 import 'package:wherehouse/database/UserManager.dart';
 import 'package:wherehouse/user_management/UserController.dart';
 import 'package:wherehouse/database/TransactionView.dart'; //added transaction view class
-import 'package:wherehouse/database/AccountingController.dart'; //added accounting controllerclass
+//import 'package:wherehouse/database/AccountingController.dart'; //added accounting controllerclass
 
 class MyApp extends StatelessWidget {
   late ItemManager itemManager;
