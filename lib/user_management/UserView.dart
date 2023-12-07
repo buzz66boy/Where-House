@@ -9,8 +9,7 @@ class UserView extends StatefulWidget {
   const UserView({
     super.key,
     required this.user,
-    required  this.userController ,
-
+    required this.userController,
   });
 
   @override
@@ -30,18 +29,19 @@ class _UserViewState extends State<UserView> {
     currentUser = widget.user;
     _uidController.text = widget.user.uid.toString();
     _nameController.text = widget.user.name;
-    _checkOutItemsController.text = _checkOutItemsToString(widget.user.checkedOutItems);
-
+    _checkOutItemsController.text =
+        _checkOutItemsToString(widget.user.checkedOutItems);
   }
-  String _checkOutItemsToString(List <dynamic> items){
+
+  String _checkOutItemsToString(List<dynamic> items) {
     return items.join(',');
   }
-  bool _showUserInfo =false;
+
+  bool _showUserInfo = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-<<<<<<< HEAD
         appBar: AppBar(
           title: const Text('User Information'),
         ),
@@ -49,79 +49,50 @@ class _UserViewState extends State<UserView> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              ElevatedButton(onPressed: () {
-                setState(() {
-                  _showUserInfo = !_showUserInfo;
-                });
-              },
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _showUserInfo = !_showUserInfo;
+                  });
+                },
                 child: const Text("View User"),
               ),
-              ElevatedButton(onPressed: () => _editUserInfo(context),
+              ElevatedButton(
+                  onPressed: () => _editUserInfo(context),
                   child: const Text("Edit User")),
-              if(_showUserInfo) displayUserInfo(),
+              if (_showUserInfo) displayUserInfo(),
             ],
           ),
         )
-=======
-      appBar: AppBar(
-        title: const Text('User Information'),
-      ),
-       body: Center(
-         child: Column(
-           mainAxisAlignment: MainAxisAlignment.center,
-           children: <Widget>[
-             ElevatedButton(onPressed: () {
-               setState(() {
-                 _showUserInfo = !_showUserInfo;
-               });
-             },
-               child: const Text("View User"),
-             ),
-             ElevatedButton(onPressed: () => _editUserInfo(context),
-                 child: const Text("Edit User")),
-             if(_showUserInfo) displayUserInfo(),
-           ],
-         ),
-       )
->>>>>>> origin
 
-      // SingleChildScrollView(
-      //   child: Column(
-      //     mainAxisAlignment: MainAxisAlignment.end,
-      //     crossAxisAlignment: CrossAxisAlignment.end,
-      //     children: <Widget>[
-      //       ElevatedButton(
-      //           onPressed: () => _editUserInfo(context),
-      //           child: const Text("Edit User")
-      //       ),
-      //
-      //       Padding(
-      //         padding: const EdgeInsets.all(40.0),
-      //         child: displayUserInfo(),
-      //       ),
-      //     ],
-      //   ),
-      // ),
-    );
+        // SingleChildScrollView(
+        //   child: Column(
+        //     mainAxisAlignment: MainAxisAlignment.end,
+        //     crossAxisAlignment: CrossAxisAlignment.end,
+        //     children: <Widget>[
+        //       ElevatedButton(
+        //           onPressed: () => _editUserInfo(context),
+        //           child: const Text("Edit User")
+        //       ),
+        //
+        //       Padding(
+        //         padding: const EdgeInsets.all(40.0),
+        //         child: displayUserInfo(),
+        //       ),
+        //     ],
+        //   ),
+        // ),
+        );
   }
 
-
-
-
   /// Contract 1: Display User Information
-<<<<<<< HEAD
   displayUserInfo() {
-=======
-   displayUserInfo() {
->>>>>>> origin
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('User Id: ${currentUser.uid}'),
         Text('Name: ${currentUser.name}'),
         Text('Checked Out items: ${currentUser.checkedOutItems}'),
-
       ],
     );
   }
@@ -150,7 +121,8 @@ class _UserViewState extends State<UserView> {
                   ),
                 ),
                 TextFormField(
-                  controller: _checkOutItemsController, // Use check out items controller
+                  controller:
+                      _checkOutItemsController, // Use check out items controller
                   decoration: InputDecoration(
                     labelText: 'Checked Out Items',
                   ),
@@ -163,9 +135,13 @@ class _UserViewState extends State<UserView> {
               child: const Text('Save'),
               onPressed: () {
                 setState(() {
-                  widget.user.uid = int.tryParse(_uidController.text) ?? widget.user.uid; // Parse UID from text
+                  widget.user.uid = int.tryParse(_uidController.text) ??
+                      widget.user.uid; // Parse UID from text
                   widget.user.name = _nameController.text;
-                  widget.user.checkedOutItems = _checkOutItemsController.text.split(',').map((item) => item.trim()).toList();
+                  widget.user.checkedOutItems = _checkOutItemsController.text
+                      .split(',')
+                      .map((item) => item.trim())
+                      .toList();
                 });
                 Navigator.of(context).pop();
               },
@@ -177,36 +153,6 @@ class _UserViewState extends State<UserView> {
   }
 
 // void _editUserInfo(BuildContext context) {
-<<<<<<< HEAD
-//
-//   showDialog(
-//     context: context,
-//     builder: (BuildContext context) {
-//       return AlertDialog(
-//         title: const Text('Edit User Information'),
-//
-//         actions: <Widget>[
-//           ElevatedButton(
-//             child: const Text('Save'),
-//             onPressed: () {
-//               setState(() {
-//                 widget.user.uid = int.parse(_uidController.toString());
-//                 widget.user.name = _nameController.text;
-//                 widget.user.checkedOutItems = _checkOutItemsController.text.split(',').map((item) => item.trim()).toList();
-//               });
-//
-//               Navigator.of(context).pop();
-//             },
-//           ),
-//         ],
-//       );
-//     },
-//   );
-// }
-
-
-
-=======
   //
   //   showDialog(
   //     context: context,
@@ -232,8 +178,4 @@ class _UserViewState extends State<UserView> {
   //     },
   //   );
   // }
-
-
-  
->>>>>>> origin
 }

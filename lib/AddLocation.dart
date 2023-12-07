@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'Location.dart';
-import 'LocationManager.dart'; 
+import 'package:wherehouse/database/Location.dart';
+// import 'Location.dart';
+import 'package:wherehouse/database/LocationManager.dart';
 
 void main() => runApp(MaterialApp(home: LocationController()));
 
@@ -54,7 +55,8 @@ class _LocationControllerState extends State<LocationController> {
             onPressed: () {
               // Here you would typically have a form or another method
               // to input the new location data instead of hardcoding it.
-              Location newLocation = Location(name: 'New Park', description: 'A new public, urban park.');
+              Location newLocation = Location(
+                  name: 'New Park', description: 'A new public, urban park.');
               addLocationToLocationManager(newLocation);
             },
             child: Text('Add New Location'),

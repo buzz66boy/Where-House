@@ -52,7 +52,8 @@ class LendingController {
       locQuant[selectedLocation] = newQuantity;
 
       // Update the item's location quantities
-      itemController.updateItemLocationQuantities(item.uid, locQuant);
+      itemController.updateItemLocationQuantities(
+          itemUid: item.uid, uidQuantMap: locQuant);
 
       // Display an alert with the checkout message
       showCheckoutAlert(context, selectedQuantity);
@@ -75,7 +76,8 @@ class LendingController {
       locQuant[selectedLocation] = newQuantity;
 
       // Update the item's location quantities
-      itemController.updateItemLocationQuantities(item.uid, locQuant);
+      itemController.updateItemLocationQuantities(
+          itemUid: item.uid, uidQuantMap: locQuant);
 
       // Display an alert with the checkout message
       showCheckInAlert(context, selectedQuantity);

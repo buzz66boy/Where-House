@@ -10,8 +10,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wherehouse/Item_Management/Controllers/item_controller.dart';
 
 import 'package:wherehouse/Item_Management/Views/item_view.dart';
+import 'package:wherehouse/LocationController.dart';
 import 'package:wherehouse/database/Item.dart';
 import 'package:wherehouse/database/ItemManager.dart';
+import 'package:wherehouse/database/LocationManager.dart';
 
 void main() {
   testWidgets('Item View test', (WidgetTester tester) async {
@@ -24,14 +26,19 @@ void main() {
         locationUID: 0);
 
     ItemManager itemManager = ItemManager();
-    ItemController itemController = ItemController(itemManager: itemManager);
+    LocationManager locationManager = LocationManager();
+    LocationController locationController =
+        LocationController(locationManager: locationManager);
+    ItemController itemController = ItemController(
+        itemManager: itemManager, locationController: locationController);
 
     // Build our app and trigger a frame.
     await tester.pumpWidget(MaterialApp(
         home: ItemView(
             item: item,
             itemController: itemController,
-            locationQuantities: {0: 3, 2: 3})));
+            locationNames: const {0: "Tahiti", 2: "Brazil"},
+            locationQuantities: const {0: 3, 2: 3})));
 
     // Verify that the item's info is there.
     expect(find.text('Item View: Test Item'), findsOneWidget);

@@ -2,13 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:wherehouse/Item_Management/Controllers/lending_controller.dart';
 import 'package:wherehouse/Item_Management/Views/item_list_view.dart';
 import 'package:wherehouse/Item_Management/Views/item_view.dart';
+import 'package:wherehouse/LocationController.dart';
 import 'package:wherehouse/database/Item.dart';
 import 'package:wherehouse/database/ItemManager.dart';
+import 'package:wherehouse/database/Location.dart';
+
+class ItemControllerHolder {
+  static late ItemController itemController;
+
+  static ItemController instantiateItemController(
+      {required locationController, required itemManager}) {
+    itemController = ItemController(
+        locationController: locationController, itemManager: itemManager);
+    return itemController;
+  }
+
+  static ItemController getInstance() {
+    return itemController;
+  }
+}
 
 class ItemController {
   final ItemManager itemManager;
+  final LocationController locationController;
   late LendingController lendingController;
-  ItemController({required this.itemManager}) {
+
+  ItemController(
+      {required this.locationController, required this.itemManager}) {
     lendingController = LendingController(itemController: this);
   }
 
@@ -17,7 +37,7 @@ class ItemController {
         context,
         MaterialPageRoute(
             builder: (context) => ItemListView(
-                  itemList: ilist,
+                  initialItemList: ilist,
                   confirmSelect: true,
                   itemController: this,
                   barcodeScanned: '',
@@ -60,6 +80,15 @@ class ItemController {
   void showItem(context, Item it) async {
     Map<int, int> locQuant = await getItemLocationQuantities(item: it);
 
+    List<int> locIds = locQuant.keys.toList();
+    List<String> locNames = await getLocationNames(locIds);
+
+    Map<int, String> locNameMap = {};
+
+    for (int i = 0; i < locIds.length; i++) {
+      locNameMap[locIds[i]] = locNames[i];
+    }
+    debugPrint(locNames.toString());
     await Navigator.push(
         context,
         MaterialPageRoute(
@@ -67,7 +96,16 @@ class ItemController {
                   item: it,
                   itemController: this,
                   locationQuantities: locQuant,
+                  locationNames: locNameMap,
                 )));
+  }
+
+  Future<List<String>> getLocationNames(List<int> uidList) {
+    return locationController.getLocationNames(uidList);
+  }
+
+  Future<String> getLocationName(int uid) {
+    return locationController.getLocationName(uid);
   }
 
   Future<Map<int, int>> getItemLocationQuantities(
@@ -86,14 +124,16 @@ class ItemController {
         //[{locationUid: 0, itemUid: 10, itemCount: 3}, {locationUid: 1, itemUid: 10, itemCount: 2}]
         // debugPrint('Test Message: ' + quant.toString());
         bool defLocHandled = false;
-        for (int i = 0; i < quant.length; i++) {
-          if (quant[i]['locationUid'] == item.locationUID) {
-            locQuant[quant[i]['locationUid']] = quant[i]['itemCount'];
-            defLocHandled = true;
+        if (item.locationUID >= 0) {
+          for (int i = 0; i < quant.length; i++) {
+            if (quant[i]['locationUid'] == item.locationUID) {
+              locQuant[quant[i]['locationUid']] = quant[i]['itemCount'];
+              defLocHandled = true;
+            }
           }
-        }
-        if (!defLocHandled) {
-          locQuant[item.locationUID] = 0;
+          if (!defLocHandled) {
+            locQuant[item.locationUID] = 0;
+          }
         }
         for (int i = 0; i < quant.length; i++) {
           if (!defLocHandled || quant[i]['locationUid'] != item.locationUID) {
@@ -105,11 +145,35 @@ class ItemController {
     return locQuant;
   }
 
-  void updateItemLocationQuantities(int uid, Map<int, int> locQuant) async {
-    locQuant.forEach((key, value) async {
-      await itemManager.updateItemCount(
-          key, uid, value); //FIXME: return bool for success
-    });
+  Future<Map<int, int>> getLocationItems(int locUid) async {
+    Map<int, int> itemQuant = {};
+    List<Map<String, dynamic>>? quant =
+        await itemManager.queryItemCount(locationUid: locUid);
+
+    if (quant != null) {
+      //build itemQuant map for location
+      //[{itemUid: 0, itemCount: 3}, {itemUid: 1, itemCount: 2}]
+      for (int i = 0; i < quant.length; i++) {
+        itemQuant[quant[i]['itemUid']] = quant[i]['itemCount'];
+      }
+    }
+
+    return itemQuant;
+  }
+
+  void updateItemLocationQuantities(
+      {int? itemUid, int? locUid, required Map<int, int> uidQuantMap}) async {
+    if (itemUid != null) {
+      uidQuantMap.forEach((key, value) async {
+        await itemManager.updateItemCount(
+            key, itemUid, value); //FIXME: return bool for success
+      });
+    } else if (locUid != null) {
+      uidQuantMap.forEach((key, value) async {
+        await itemManager.updateItemCount(
+            locUid, key, value); //FIXME: return bool for success
+      });
+    }
   }
 
   void showItemList(
@@ -147,7 +211,7 @@ class ItemController {
         context,
         MaterialPageRoute(
             builder: (context) => ItemListView(
-                  itemList: itemList as List<Item>,
+                  initialItemList: itemList as List<Item>,
                   confirmSelect: false,
                   itemController: this,
                   barcodeScanned: barcodeScanned,
@@ -184,7 +248,11 @@ class ItemController {
         retItem = (await getItems(uid: uid))[0]; //FIXME: should check if exists
       }
       if (locationQuantityMap != null) {
-        updateItemLocationQuantities(uid, locationQuantityMap);
+        updateItemLocationQuantities(
+          itemUid: uid,
+          uidQuantMap: locationQuantityMap,
+        );
+        // updateItemLocationQuantities(itemUid: itemuid, ui locationQuantityMap);
       }
       return retItem;
       // Item();
@@ -259,6 +327,19 @@ class ItemController {
     return itemList;
   }
 
+  Future<Item?> addBarcodeToItem(context, int itemUid, String barcode) async {
+    Item item = (await getItems(uid: itemUid))[0];
+    //Confirm they want to add barcode to the item
+    bool? confirm = await _confirmAddBarcodeDialog(context, item.name, barcode);
+
+    if (confirm != null && confirm) {
+      item.barcodes.add(barcode);
+      setItemInfo(uid: itemUid, barcodes: item.barcodes);
+      return item;
+    }
+    return null;
+  }
+
   Future<Item?> createNewItem(context, String barcode) async {
     //prompt for item name
     String? text = await _getItemName(context);
@@ -267,7 +348,13 @@ class ItemController {
     //     .then((value) => {debugPrint(nameController.text)});
     if (text != null) {
       // debugPrint(text);
+      //get default location selection
+      int defaultLocUid = -1;
 
+      Location? defLocSelected = await _getDefaultLocationPopup(context);
+      if (defLocSelected != null) {
+        defaultLocUid = defLocSelected.uid;
+      }
       //create item via ItemManager
       List<String> barcodes = [];
       if (barcode.isNotEmpty) {
@@ -275,7 +362,7 @@ class ItemController {
         barcodes.add(barcode);
       }
       Item? newItem = await itemManager.addItem(text, '', barcodes,
-          0); //FIXME: avoid hardcoding 0 as default location
+          defaultLocUid); //FIXME: avoid hardcoding 0 as default location
       //go to item view in edit mode
       if (newItem != null) {
         showItem(context, newItem);
@@ -283,6 +370,33 @@ class ItemController {
       return newItem;
     }
     return null;
+  }
+
+  Future<bool?> _confirmAddBarcodeDialog(
+      context, String itemName, String newBarcode) async {
+    return showDialog(
+        useRootNavigator: false,
+        context: context,
+        builder: (BuildContext ctx) {
+          return AlertDialog(
+            title: Text('Add Barcode to Item?'),
+            content: Text("Name: $itemName \nNew Barcode: $newBarcode"),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.of(context).pop(true);
+                },
+                child: Text('Confirm'),
+              ),
+            ],
+          );
+        });
   }
 
   Future<String?> _getItemName(context) async {
@@ -313,5 +427,36 @@ class ItemController {
             ],
           );
         });
+  }
+
+  Future<Location?> _getDefaultLocationPopup(context) {
+    return showDialog(
+        useRootNavigator: false,
+        context: context,
+        builder: (BuildContext ctx) {
+          return AlertDialog(
+            title: Text('Item Default Location'),
+            content: Text('Would you like to set a default location?'),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('No'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.of(context)
+                      .pop(await getLocationSelection(context));
+                },
+                child: Text('Yes'),
+              ),
+            ],
+          );
+        });
+  }
+
+  Future<Location?> getLocationSelection(BuildContext context) {
+    return locationController.getLocationSelection(context: context);
   }
 }

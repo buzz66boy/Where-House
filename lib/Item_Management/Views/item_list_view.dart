@@ -3,13 +3,13 @@ import 'package:wherehouse/Item_Management/Controllers/item_controller.dart';
 import 'package:wherehouse/database/Item.dart';
 
 class ItemListView extends StatefulWidget {
-  final List<Item> itemList;
+  final List<Item> initialItemList;
   final bool confirmSelect;
   final ItemController itemController;
   final String barcodeScanned;
   const ItemListView(
       {super.key,
-      required this.itemList,
+      required this.initialItemList,
       required this.confirmSelect,
       required this.itemController,
       this.barcodeScanned = ''});
@@ -19,13 +19,15 @@ class ItemListView extends StatefulWidget {
 }
 
 class _ItemListViewState extends State<ItemListView> {
-  _ItemListViewState();
+  late List<Item> itemList;
   final _queryController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _queryController.text = widget.barcodeScanned;
+
+    itemList = widget.initialItemList;
   }
 
   @override
@@ -61,24 +63,30 @@ class _ItemListViewState extends State<ItemListView> {
             child: Flex(direction: Axis.vertical, children: [
           TextField(
               controller: _queryController,
+              onChanged: (value) async {
+                itemList = await widget.itemController
+                    .getItems(name: _queryController.text, looseMatching: true);
+                setState(() {});
+                debugPrint("Item Search done");
+              },
               decoration: InputDecoration(hintText: 'Item Search')),
           Expanded(
             child:
                 // SingleChildScrollView(
                 ListView.builder(
               // scrollDirection: Axis.vertical,
-              itemCount: widget.itemList.length,
+              itemCount: itemList.length,
               shrinkWrap: true,
               itemBuilder: (context, index) {
                 return GestureDetector(
                     onTap: () => _selectItem(
                         context,
                         index,
-                        widget.itemList[index]
+                        itemList[index]
                             .name), //FIXME: rebuild when refreshing screen
                     child: ListTile(
-                      title: Text(widget.itemList[index].name),
-                      subtitle: Text(widget.itemList[index].description),
+                      title: Text(itemList[index].name),
+                      subtitle: Text(itemList[index].description),
                     ));
               },
             ),
@@ -89,7 +97,7 @@ class _ItemListViewState extends State<ItemListView> {
     return scaffold;
   }
 
-  void _selectItem(context, index, name) {
+  void _selectItem(context, index, name) async {
     if (widget.confirmSelect) {
       showDialog(
           context: context,
@@ -107,7 +115,7 @@ class _ItemListViewState extends State<ItemListView> {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    Navigator.of(context).pop(widget.itemList[index]);
+                    Navigator.of(context).pop(itemList[index]);
                   },
                   child: Text('Yes'),
                 ),
@@ -117,7 +125,21 @@ class _ItemListViewState extends State<ItemListView> {
       debugPrint('${index}');
     } else {
       // Navigator.of(context).pop(widget.itemList[index]);
-      widget.itemController.showItem(context, widget.itemList[index]);
+      if (widget.barcodeScanned.isNotEmpty &&
+          !itemList[index].barcodes.contains(widget.barcodeScanned)) {
+        Item? updatedItem = await widget.itemController.addBarcodeToItem(
+            context, itemList[index].uid, widget.barcodeScanned);
+        if (updatedItem != null) {
+          itemList[index] = updatedItem;
+          Navigator.of(context).pop();
+          widget.itemController.showItem(context, itemList[index]);
+        }
+      } else {
+        if (widget.barcodeScanned.isNotEmpty) {
+          Navigator.of(context).pop();
+        }
+        widget.itemController.showItem(context, itemList[index]);
+      }
     }
   }
 }

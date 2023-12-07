@@ -14,27 +14,27 @@ void main() {
     databaseFactory = databaseFactoryFfi;
     sqfliteFfiInit();
     final databasePath = await getDatabasesPath();
-    await openDatabase(
-        join(databasePath, 'WhereHouse.db'), onCreate: (db, version) async {
+    await openDatabase(join(databasePath, 'WhereHouse.db'),
+        onCreate: (db, version) async {
       await db.execute(
         'CREATE TABLE IF NOT EXISTS Item('
-            'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
-            'name TEXT, '
-            'description TEXT, '
-            'barcodes TEXT, '
-            'locationUID INTEGER, '
-            'FOREIGN KEY (locationUID) REFERENCES Location(uid)'
-            ')',
+        'uid INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'name TEXT, '
+        'description TEXT, '
+        'barcodes TEXT, '
+        'locationUID INTEGER, '
+        'FOREIGN KEY (locationUID) REFERENCES Location(uid)'
+        ')',
       );
       await db.execute(
         'CREATE TABLE IF NOT EXISTS LocationItemCount('
-            'locationUid INTEGER, '
-            'itemUid INTEGER, '
-            'itemCount INTEGER, '
-            'PRIMARY KEY (locationUid, itemUid), '
-            'FOREIGN KEY (locationUid) REFERENCES Location(uid), '
-            'FOREIGN KEY (itemUid) REFERENCES Item(uid)'
-            ')',
+        'locationUid INTEGER, '
+        'itemUid INTEGER, '
+        'itemCount INTEGER, '
+        'PRIMARY KEY (locationUid, itemUid), '
+        'FOREIGN KEY (locationUid) REFERENCES Location(uid), '
+        'FOREIGN KEY (itemUid) REFERENCES Item(uid)'
+        ')',
       );
     }, version: 1);
   });
@@ -44,7 +44,6 @@ void main() {
     final databasePath = await getDatabasesPath();
     await deleteDatabase(join(databasePath, 'WhereHouse.db'));
   });
-
 
   test('Add Item', () async {
     ItemManager itemManager = ItemManager();
@@ -58,32 +57,28 @@ void main() {
     expect(newItem, isNotNull);
 
     // Ensure that the item has been added to the database
-    Item testItem = Item(name:'Chalk', description: "White", barcodes: ['123', '456'], locationUID: 67 );
-    bool result = await testItem.setItem();
-    expect(result, true);
-
-    var retrievedItem = await Item.getItem(testItem.uid);
-    //expect(retrievedItem, isNotNull);
-    expect(retrievedItem!.uid, matcher.equals(testItem.uid));
-
+    Item? retrievedItem = await Item.getItem(newItem!.uid);
+    expect(retrievedItem, isNotNull);
+    expect(retrievedItem!.uid, matcher.equals(newItem.uid));
   });
 
   test('Remove Item', () async {
     ItemManager itemManager = ItemManager();
     // Ensure that removing an item returns true
-    await itemManager.addItem(
+    Item? newItem = await itemManager.addItem(
       'Test Item',
       'Test Description',
       ['12345', '67890'],
       1,
     );
+    expect(newItem, isNotNull);
 
-    List<Item> items = await itemManager.queryItems('Test Item');
-    expect(items, isNotEmpty);
+    bool result = await itemManager.removeItem(newItem!.uid);
+    expect(result, true);
 
-    // Remove the added location
-    bool removeResult = await itemManager.removeItem(items[0].uid);
-    expect(removeResult, true);
+    // Ensure that the item has been removed from the database
+    Item? retrievedItem = await Item.getItem(newItem.uid);
+    expect(retrievedItem, isNull);
   });
 
   test('Edit Item', () async {
@@ -132,10 +127,9 @@ void main() {
     expect(itemCount[0]['itemCount'], matcher.equals(5));
   });
 
- test('Query Item Count', () async {
+  test('Query Item Count', () async {
     ItemManager itemManager = ItemManager();
-    bool result = await itemManager.updateItemCount(1, 1, 5);
-
+    // Ensure that querying item count returns a non-null list
     List<Map<String, dynamic>>? itemCount = await itemManager.queryItemCount(
       locationUid: 1,
       itemUid: 1,
@@ -145,12 +139,6 @@ void main() {
 
   test('Query Items', () async {
     ItemManager itemManager = ItemManager();
-    await itemManager.addItem(
-      'Test Item',
-      'Test Description',
-      ['12345', '67890'],
-      1,
-    );
     // Ensure that querying items returns a non-empty list
     List<Item> items = await itemManager.queryItems();
     expect(items, isNotNull);
@@ -158,14 +146,7 @@ void main() {
   });
 
   test('Export Items', () async {
-
     ItemManager itemManager = ItemManager();
-    await itemManager.addItem(
-      'Test Item',
-      'Test Description',
-      ['12345', '67890'],
-      1,
-    );
     // Ensure that exporting items returns true
     bool result = await itemManager.exportItems('test_export.json');
     expect(result, true);

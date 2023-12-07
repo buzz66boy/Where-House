@@ -4,19 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:wherehouse/Item_Management/Controllers/item_controller.dart';
 import 'package:wherehouse/Item_Management/Controllers/scanner_controller.dart';
+import 'package:wherehouse/LocationController.dart';
 import 'package:wherehouse/database/Item.dart';
 import 'package:wherehouse/database/ItemManager.dart';
+import 'package:wherehouse/database/LocationManager.dart';
+import 'package:wherehouse/database/User.dart';
+import 'package:wherehouse/database/UserManager.dart';
+import 'package:wherehouse/login_screen.dart';
+import 'package:wherehouse/user_management/UserController.dart';
 
 class MyApp extends StatelessWidget {
   late ItemManager itemManager;
   late ItemController itemController;
   late ScannerController scannerController;
-  /// Added User 
-  late UserController userController;
-  late UserManager userManager;
-  late User user = User(uid: 1,name: "John doe", checkedOutItems: [1,3]);
-  
-  MyApp({super.key}) {
+  final User user;
+
+  /// Added User
+
+  MyApp({super.key, required this.user}) {
     // ItemManager itemManager = ItemManager();
     // ItemController itemController = ItemController(itemManager: itemManager);
   }
@@ -50,27 +55,22 @@ class MyApp extends StatelessWidget {
       //   confirmSelect: true,
       // )
 
-      home: MyHomePage(title: 'Where?House Main Menu'),
+      home: MyHomePage(title: 'Where?House Main Menu', user: user),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  // User added 
-  userManager = UserManager();
-  userManager.initializeDatabase().then((value) async{
-    bool tempUser = await userManager.addUser(user.name,user.checkedOutItems);
-      if(tempUser!=null){
-        user = tempUser as User;
-      }
-      userManager.queryUsers('John doe').then((value) => print(value.toString()));
+  // User added
+  final User user;
+  late UserManager userManager = UserManager();
+  late UserController userController = UserController(userManager);
 
-    });
-
-  
   late ItemManager itemManager;
   late ItemController itemController;
   late ScannerController scannerController;
+  late LocationManager locationManager;
+  late LocationController locationController;
   late Item item = Item(
       uid: 10,
       name: 'Copier Toner',
@@ -78,17 +78,32 @@ class MyHomePage extends StatefulWidget {
           'Tones Copiers but sometimes this is not enough and it needs to tone other things like koalas and crazy kangaroos in the outback',
       barcodes: ['1234', '4321'],
       // locationQuantities: <int, int>{1: 2, 3: 4},
-      locationUID: 0);
-  MyHomePage({super.key, required this.title}) {
+      locationUID: 1);
+  MyHomePage({super.key, required this.title, required this.user}) {
+    // userManager.initializeDatabase().then((value) async {
+    //   User user = User(
+    //       uid: 1,
+    //       name: "John doe",
+    //       password: "1234567890",
+    //       checkedOutItems: [1, 3]);
+    //   bool tempUser = await userManager.addUser(
+    //       user.name, user.password, user.checkedOutItems);
+    //   // if (tempUser != null) {
+    //   //   user = tempUser as User;
+    //   // }
+    //   userManager
+    //       .queryUsers('John doe')
+    //       .then((value) => print(value.toString()));
+    // });
     itemManager = ItemManager();
     itemManager.initializeDatabase().then((value) async {
       Item? tempitem = await itemManager.addItem(
           item.name, item.description, item.barcodes, item.locationUID);
       if (tempitem != null) {
         item = tempitem as Item;
-        itemManager.updateItemCount(0, item.uid, 3);
+        // itemManager.updateItemCount(0, item.uid, 3);
         itemManager.updateItemCount(1, item.uid, 2);
-        itemManager.updateItemCount(4, item.uid, 4);
+        // itemManager.updateItemCount(4, item.uid, 4);
       }
       // await itemManager.editItem(
       //     uid: item.uid,
@@ -99,8 +114,11 @@ class MyHomePage extends StatefulWidget {
 
       itemManager.queryItems('koala').then((value) => print(value.toString()));
     });
-    itemController = ItemController(itemManager: itemManager);
-    scannerController = ScannerController();
+    locationManager = LocationManager();
+    locationController = LocationController(locationManager: locationManager);
+    itemController = ItemControllerHolder.instantiateItemController(
+        locationController: locationController, itemManager: itemManager);
+    scannerController = ScannerController(itemController: itemController);
   }
 
   // This widget is the home page of your application. It is stateful, meaning
@@ -136,6 +154,9 @@ class _MyHomePageState extends State<MyHomePage> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+        actions: [
+          _buildUserDropdown(), // Call the method to build the dropdown
+        ],
       ),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
@@ -169,18 +190,19 @@ class _MyHomePageState extends State<MyHomePage> {
                   widget.itemController.showItemList(context: context);
                 },
                 child: Text("Search Items")),
-            ElevatedButton(onPressed: () {}, child: Text("Manage Locations")),
-            
             ElevatedButton(
-                onPressed: () async{
-                  widget.userController.setUserViewActive(context, 1);
+                onPressed: () {
+                  widget.locationController.showLocationList(context: context);
+                },
+                child: Text("Manage Locations")),
+            ElevatedButton(
+                onPressed: () async {
+                  widget.userController
+                      .setUserViewActive(context, widget.user.uid);
                   print("made it here to users");
-                }, child: Text("Manage User")),
-             ElevatedButton(onPressed: () async{
-
-            }, child: Text("Manage Users")),
-
-            
+                },
+                child: Text("Manage User")),
+            ElevatedButton(onPressed: () async {}, child: Text("Manage Users")),
             ElevatedButton(
                 onPressed: () {}, child: Text("Transaction History")),
             ElevatedButton(onPressed: () {}, child: Text("Settings")),
@@ -197,6 +219,38 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: Text("Testing Button")),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserDropdown() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: PopupMenuButton<String>(
+        onSelected: (value) {
+          if (value == 'logout') {
+            // Handle logout action here
+            // You may want to navigate to the login screen or perform any other logout logic
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => BackgroundVideo()));
+          }
+        },
+        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+          PopupMenuItem<String>(
+            value: 'logout',
+            child: Row(
+              children: [
+                Icon(Icons.logout),
+                SizedBox(width: 8),
+                Text('Logout'),
+              ],
+            ),
+          ),
+        ],
+        icon: CircleAvatar(
+          // Display the user's initials or avatar, adjust as needed
+          child: Text(widget.user.name[0]),
         ),
       ),
     );
