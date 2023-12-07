@@ -79,7 +79,7 @@ class _UserViewState extends State<UserView> {
       children: [
         Text('User Id: ${currentUser.uid}'),
         Text('Name: ${currentUser.name}'),
-        // Text('Password: ${currentUser.password}'),
+        Text('Password: ${currentUser.password}'),
         Text('Checked Out items: ${currentUser.checkedOutItems}'),
       ],
     );
@@ -97,6 +97,7 @@ class _UserViewState extends State<UserView> {
                 TextFormField(
                   controller: _uidController,
                   decoration: const InputDecoration(
+
                     labelText: 'User ID',
                   ),
                   keyboardType: TextInputType.number,
@@ -148,30 +149,4 @@ class _UserViewState extends State<UserView> {
     );
   }
 
-// void _editUserInfo(BuildContext context) {
-  //
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: const Text('Edit User Information'),
-  //
-  //         actions: <Widget>[
-  //           ElevatedButton(
-  //             child: const Text('Save'),
-  //             onPressed: () {
-  //               setState(() {
-  //                 widget.user.uid = int.parse(_uidController.toString());
-  //                 widget.user.name = _nameController.text;
-  //                 widget.user.checkedOutItems = _checkOutItemsController.text.split(',').map((item) => item.trim()).toList();
-  //               });
-  //
-  //               Navigator.of(context).pop();
-  //             },
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
 }

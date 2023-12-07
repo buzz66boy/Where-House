@@ -5,6 +5,64 @@ import 'package:wherehouse/user_management/UserController.dart';
 import 'package:wherehouse/database/User.dart';
 import 'package:wherehouse/database/UserManager.dart';
 import 'UserView.dart';
+//
+// class UserListView extends StatefulWidget {
+//   const UserListView({super.key});
+//
+//   @override
+//   _UserListViewState createState() => _UserListViewState();
+// }
+//
+// class _UserListViewState extends State<UserListView> {
+//   late final UserManager _userManager;
+//   late final UserController _userController;
+//
+//   List<User> _users = [];
+//   String _query = '';
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     _userManager = UserManager();
+//     _userController = UserController(_userManager);
+//     _displayUsers();
+//   }
+//
+//   void _displayUsers() async {
+//     List<User> usersList = await _userController.getUsers();
+//     setState(() {
+//       _users = usersList;
+//     });
+//   }
+//
+//   void _selectUser(User user) {
+//     Navigator.push(
+//       context,
+//       MaterialPageRoute(
+//           builder: (context) =>
+//               UserView(user: user, userController: _userController)),
+//     );
+//   }
+//
+//   void _selectAddUser() {
+//     final BuildContext scaffoldContext = context;
+//     addUserDialog(scaffoldContext);
+//   }
+//
+//   // void _submitUserQuery(String query) {
+//   //
+//   //   setState(() {
+//   //     _query = query;
+//   //   });
+//   //
+//   // }
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:wherehouse/user_management/UserController.dart';
+import 'package:wherehouse/database/User.dart';
+import 'package:wherehouse/database/UserManager.dart';
+import 'UserView.dart';
 
 class UserListView extends StatefulWidget {
   const UserListView({super.key});
@@ -17,8 +75,7 @@ class _UserListViewState extends State<UserListView> {
   late final UserManager _userManager;
   late final UserController _userController;
 
-  List<User> _users = [];
-  String _query = '';
+
 
   @override
   void initState() {
@@ -30,55 +87,45 @@ class _UserListViewState extends State<UserListView> {
 
   void _displayUsers() async {
     List<User> usersList = await _userController.getUsers();
-    setState(() {
-      _users = usersList;
-    });
-  }
-
-  void _selectUser(User user) {
     Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) =>
-              UserView(user: user, userController: _userController)),
+        builder: (context) => UserListScreen(users: usersList),
+      ),
     );
   }
+
 
   void _selectAddUser() {
     final BuildContext scaffoldContext = context;
     addUserDialog(scaffoldContext);
   }
 
-  // void _submitUserQuery(String query) {
-  //
-  //   setState(() {
-  //     _query = query;
-  //   });
-  //
-  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('User List'),
-        backgroundColor: Colors.cyan,
+        backgroundColor:  Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
-            Text('User List',
+            const Text('User List',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            SizedBox(
+            const SizedBox(
               height: 10,
             ),
-            Text("Users"),
+
             ElevatedButton(
-                onPressed: () => _selectAddUser(), child: Text("Add User"))
+                onPressed: () => _selectAddUser(), child: const Text("Add User")),
+            ElevatedButton(
+                onPressed: () => _displayUsers(), child: const Text("Display Users")),
           ],
         ),
       ),
@@ -86,23 +133,36 @@ class _UserListViewState extends State<UserListView> {
   }
 
   Future<void> addUserDialog(BuildContext scaffoldContext) async {
-    String userName = '';
+    final TextEditingController userIdController = TextEditingController();
+    final TextEditingController userNameController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+    final TextEditingController checkedOutItemsController = TextEditingController();
 
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        final TextEditingController userNameController =
-            TextEditingController();
         return AlertDialog(
           title: const Text('Add New User'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 TextField(
+                  controller: userIdController,
+                  decoration: const InputDecoration(hintText: "Enter user's ID"),
+                  keyboardType: TextInputType.number,
+                ),
+                TextField(
+                  controller: passwordController,
+                  decoration:  const InputDecoration(hintText: "Enter password"),
+                ),
+                TextField(
                   controller: userNameController,
-                  decoration:
-                      const InputDecoration(hintText: "Enter user's name"),
+                  decoration: const InputDecoration(hintText: "Enter user's name"),
+                ),
+                TextField(
+                  controller: checkedOutItemsController,
+                  decoration: const InputDecoration(hintText: "Enter checked out items (comma separated)"),
                 ),
               ],
             ),
@@ -115,48 +175,40 @@ class _UserListViewState extends State<UserListView> {
             TextButton(
               child: const Text('Add'),
               onPressed: () async {
-                userName = userNameController.text;
+                String userName = userNameController.text;
+                String userPassword = passwordController.text;
+                String checkedOutItemsString = checkedOutItemsController.text;
+
+                List<dynamic> checkedOutItems = checkedOutItemsString.isNotEmpty
+                    ? jsonDecode('[$checkedOutItemsString]')
+                    : [];
+
                 if (userName.isNotEmpty) {
-                  String jsonCheckedOutItems = '["item1", "item2", "item3"]';
-                  List<dynamic> checkedOutItems =
-                      jsonDecode(jsonCheckedOutItems);
-                  User newUser =
-                      User(name: userName, checkedOutItems: checkedOutItems);
+                  int? userId = int.tryParse(userIdController.text);
+                  if (userId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Invalid User ID')),
+                    );
+                    return;
+                  }
+
+                  User newUser = User(uid: userId, name: userName,password:userPassword,checkedOutItems: checkedOutItems);
                   bool success = await _userController.addUser(newUser);
                   Navigator.of(context).pop();
-                  if (success) {
-                    Builder(
-                      builder: (context) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content:
-                                  Text('User "$userName" add successfully')),
-                        );
-                        return Container();
-                      },
-                    );
 
-                    _displayUsers(); // Refresh the user list
+                  if (success) {
+                    ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                      SnackBar(content: Text('User "$userName" added successfully')),
+                    );
+                    _displayUsers();
                   } else {
-                    Builder(
-                      builder: (context) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text('Failed to add user "$userName"')),
-                        );
-                        return Container();
-                      },
+                    ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                      const SnackBar(content: Text('Failed to add the user')),
                     );
                   }
                 } else {
-                  Builder(
-                    builder: (context) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('User name cannot be empty')),
-                      );
-                      return Container();
-                    },
+                  ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                    const SnackBar(content: Text('User name cannot be empty')),
                   );
                 }
               },
@@ -166,4 +218,42 @@ class _UserListViewState extends State<UserListView> {
       },
     );
   }
+
 }
+class UserListScreen extends StatelessWidget {
+  final List<User> users;
+
+  const UserListScreen({Key? key, required this.users}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Users'),
+      ),
+      body: ListView.builder(
+        itemCount: users.length,
+        itemBuilder: (context, index) {
+          final user = users[index];
+          return ListTile(
+            title: Text(user.name),
+            subtitle: Text('Checked Out Items: ${user.checkedOutItems.join(', ')}'),
+            onTap: () {
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => UserView(
+                    user: user,
+                    userController: UserController(UserManager()),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
+import 'package:settings_ui/settings_ui.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:wherehouse/Item_Management/Controllers/item_controller.dart';
 import 'package:wherehouse/Item_Management/Controllers/scanner_controller.dart';
@@ -12,6 +13,7 @@ import 'package:wherehouse/database/User.dart';
 import 'package:wherehouse/database/UserManager.dart';
 import 'package:wherehouse/login_screen.dart';
 import 'package:wherehouse/user_management/UserController.dart';
+import 'package:wherehouse/user_management/UserListView.dart';
 
 class MyApp extends StatelessWidget {
   late ItemManager itemManager;
@@ -77,24 +79,25 @@ class MyHomePage extends StatefulWidget {
       description:
           'Tones Copiers but sometimes this is not enough and it needs to tone other things like koalas and crazy kangaroos in the outback',
       barcodes: ['1234', '4321'],
-      // locationQuantities: <int, int>{1: 2, 3: 4},
+      //locationQuantities: <int, int>{1: 2, 3: 4},
       locationUID: 1);
   MyHomePage({super.key, required this.title, required this.user}) {
-    // userManager.initializeDatabase().then((value) async {
-    //   User user = User(
-    //       uid: 1,
-    //       name: "John doe",
-    //       password: "1234567890",
-    //       checkedOutItems: [1, 3]);
-    //   bool tempUser = await userManager.addUser(
-    //       user.name, user.password, user.checkedOutItems);
-    //   // if (tempUser != null) {
-    //   //   user = tempUser as User;
-    //   // }
-    //   userManager
-    //       .queryUsers('John doe')
-    //       .then((value) => print(value.toString()));
-    // });
+    userManager.initializeDatabase().then((value) async {
+      User user = User(
+          uid: 1,
+          name: "bob",
+          password: "password",
+          checkedOutItems: [1, 3]);
+      bool tempUser = await userManager.addUser(user.uid,user.name,user.password,user.checkedOutItems);
+      // bool tempUser = await userManager.addUser(
+      //     user.name, user.password, user.checkedOutItems);
+      // if (tempUser != null) {
+      //   user = tempUser as User;
+      // }
+      userManager
+          .queryUsers('bob')
+          .then((value) => print(value.toString()));
+    });
     itemManager = ItemManager();
     itemManager.initializeDatabase().then((value) async {
       Item? tempitem = await itemManager.addItem(
@@ -139,6 +142,25 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+  void _navigateToUserList() {
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UserListView(),
+      ),
+    );
+  }
+
+  void _navigateToSettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SettingsPage(title: 'Settings'),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -204,10 +226,17 @@ class _MyHomePageState extends State<MyHomePage> {
                   print("made it here to users");
                 },
                 child: Text("Manage User")),
-            ElevatedButton(onPressed: () async {}, child: Text("Manage Users")),
+            ElevatedButton(
+                onPressed: _navigateToUserList,
+                child: Text("Manage Users")
+            ),
+
             ElevatedButton(
                 onPressed: () {}, child: Text("Transaction History")),
-            ElevatedButton(onPressed: () {}, child: Text("Settings")),
+            ElevatedButton(
+                onPressed: _navigateToSettings,
+                child: const Text("Settings")
+            ),
             ElevatedButton(
                 onPressed: () async {
                   widget.itemController.itemScanned(context, '5555');
@@ -258,3 +287,138 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+class SettingsPage extends StatefulWidget {
+  SettingsPage({Key? key, this.title}) : super(key: key);
+  final String? title;
+
+  @override
+  _SettingsPageState createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  bool isSwitched = false;
+  String _selectedLanguage = "English";
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title ?? 'Settings'),
+      ),
+      body: SettingsList(
+        sections: [
+          SettingsSection(
+            title: const Text('General Settings'),
+            tiles: [
+              SettingsTile(
+                title: const Text('Language'),
+                value: Text(_selectedLanguage),
+                leading: const Icon(Icons.language),
+                onPressed: (BuildContext context) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return SimpleDialog(
+                        title: const Text('Select Language'),
+                        children: <Widget>[
+                          SimpleDialogOption(
+                            onPressed: () {
+                              Navigator.pop(context, 'English');
+                            },
+                            child: const Text('English'),
+                          ),
+                          SimpleDialogOption(
+                            onPressed: () {
+                              Navigator.pop(context, 'Spanish');
+                            },
+                            child: const Text('Spanish'),
+                          ),
+
+                        ],
+                      );
+                    },
+                  ).then((value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedLanguage = value;
+                      });
+                    }
+                  });
+                },
+              ),
+
+              SettingsTile.switchTile(
+                initialValue: true,
+                title: const Text('Use System Theme'),
+                leading: const Icon(Icons.phone_android),
+                onToggle: (value) {
+                  setState(() {
+                    isSwitched = value;
+                  });
+                },
+              ),
+              SettingsTile(
+                title: const Text('Wi-Fi'),
+                leading: const Icon(Icons.wifi),
+                onPressed: (BuildContext context) {
+
+                },
+              ),
+              SettingsTile(
+                title: const Text('Delete Account'),
+                leading: const Icon(Icons.delete_forever),
+                onPressed: (BuildContext context) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Delete Account'),
+                        content: const Text('Are you sure you want to delete your account? This cannot be undone.'),
+                        actions: <Widget>[
+                          TextButton(
+                            child: const Text('Cancel'),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                          TextButton(
+                            child: const Text('Delete'),
+                            onPressed: () {
+
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
+
+
+            ],
+          ),
+          SettingsSection(
+
+            title: const Text('Security Settings'),
+            tiles: [
+              SettingsTile(
+                title: const Text('Security'),
+                value: const Text('Fingerprint'),
+                leading: const Icon(Icons.lock),
+                onPressed: (BuildContext context) {},
+              ),
+              SettingsTile.switchTile(
+                initialValue: true,
+                title: const Text('Use fingerprint'),
+                leading: const Icon(Icons.fingerprint),
+
+                onToggle: (value) {},
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+

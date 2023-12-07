@@ -11,7 +11,8 @@ class UserController {
 
   Future<bool> addUser(User user) async {
     try {
-      return await userManager.addUser(
+      /// added user.uid to search.
+      return await userManager.addUser(user.uid,
           user.name, user.password, user.checkedOutItems);
     } catch (error) {
       if (kDebugMode) {
@@ -53,13 +54,14 @@ class UserController {
 
   void setUserViewActive(BuildContext context, int userUid) async {
     try {
-      User user = await User.getUser(userUid);
+      User user = await User.getUser(userUid);  // Added await here
       if (user != null) {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) =>
-                    UserView(user: user, userController: this)));
+                builder: (context) => UserView(user: user, userController: this)
+            )
+        );
       } else {
         if (kDebugMode) {
           print('User not found for id: $userUid');
@@ -72,6 +74,7 @@ class UserController {
     }
   }
 
+
   Future<List<User>> getUsers([String query = '']) async {
     try {
       return await userManager.queryUsers(query);
@@ -83,84 +86,4 @@ class UserController {
     }
   }
 }
-
-
-// class UserController {
-//   late final UserManager userManager;
-//   late final User user;
-//   UserController(this.userManager);
-
-
-//   Future<bool> addUser(User user) async{
-//     try{
-//       return await userManager.addUser(user.name,user.checkedOutItems);
-
-//     }catch (error){
-//       if (kDebugMode) {
-//         print('Error adding user: $error');
-//       }
-//       return false;
-
-//     }
-
-//   }
-
-// /// User Controller Edit user Contract 4.
-//   Future<User?> editUser(
-//       int uid,
-//       String name,
-//       List<String> checkOutItems,
-//       ) async{
-//     return userManager.editUser(uid:uid,name: name,checkedOutItems: checkOutItems);
-
-//   }
-
-//   /// User Controller remove User Contract
-//   Future<bool> removeUser(int uid) async{
-//     bool removeUser = await userManager.removeUser(uid);
-//     return removeUser;
-//   }
-
-//   Future<bool> setUser() async{
-//    try{
-//      bool userSet = await user.setUser();
-//      return userSet;
-//    }catch(e){
-//      print("Error setting user:$e");
-//      return false;
-//    }
-//   }
-
-//   void setUserViewActive(BuildContext context, int userUid) async {
-//     try {
-//       User user = await User.getUser(userUid);
-//       if (user != null) {
-//         Navigator.push(context, MaterialPageRoute(builder: (context) => UserView(user: user,userController: this)));
-//       } else {
-
-//         if (kDebugMode) {
-//           print('User not found for id: $userUid');
-//         }
-//       }
-//     } catch (error) {
-//       if (kDebugMode) {
-//         print('Error setting user view active: $error');
-//       }
-//     }
-//   }
-
-
-//   Future<List<User>> getUsers([String query =''])async{
-//     try{
-//       return await userManager.queryUsers(query);
-
-//    }catch (error) {
-//       if (kDebugMode) {
-//         print("Error getting users $error");
-//       }
-//       return [];
-//       }
-//   }
-// }
-
 
