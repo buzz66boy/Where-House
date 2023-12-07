@@ -10,6 +10,7 @@ import 'package:wherehouse/database/ItemManager.dart';
 import 'package:wherehouse/database/LocationManager.dart';
 import 'package:wherehouse/database/User.dart';
 import 'package:wherehouse/database/UserManager.dart';
+import 'package:wherehouse/login_screen.dart';
 import 'package:wherehouse/user_management/UserController.dart';
 
 class MyApp extends StatelessWidget {
@@ -153,6 +154,9 @@ class _MyHomePageState extends State<MyHomePage> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+        actions: [
+          _buildUserDropdown(), // Call the method to build the dropdown
+        ],
       ),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
@@ -215,6 +219,38 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: Text("Testing Button")),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserDropdown() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: PopupMenuButton<String>(
+        onSelected: (value) {
+          if (value == 'logout') {
+            // Handle logout action here
+            // You may want to navigate to the login screen or perform any other logout logic
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => BackgroundVideo()));
+          }
+        },
+        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+          PopupMenuItem<String>(
+            value: 'logout',
+            child: Row(
+              children: [
+                Icon(Icons.logout),
+                SizedBox(width: 8),
+                Text('Logout'),
+              ],
+            ),
+          ),
+        ],
+        icon: CircleAvatar(
+          // Display the user's initials or avatar, adjust as needed
+          child: Text(widget.user.name[0]),
         ),
       ),
     );
